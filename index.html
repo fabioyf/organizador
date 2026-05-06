@@ -3,30 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Organizador</title>
+    <title>Organizador Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         body { background-color: #09090b; color: #f4f4f5; -webkit-tap-highlight-color: transparent; }
         .tab-active { background-color: #27272a; border-bottom: 2px solid #3b82f6; }
         .selected-acc { border: 2px solid #10b981 !important; background-color: #064e3b44 !important; }
+        .note-done { border: 2px solid #10b981 !important; background-color: #064e3b44 !important; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         input[type="number"]::-webkit-inner-spin-button { display: none; }
+        input[type="datetime-local"]::-webkit-calendar-picker-indicator { filter: invert(1); }
     </style>
 </head>
 <body class="p-4 font-sans select-none">
     <div class="max-w-md mx-auto mb-10">
         
+        <!-- MENU TABS -->
         <div class="flex gap-2 mb-6 bg-zinc-900 p-1 rounded-2xl shadow-lg border border-zinc-800">
-            <button onclick="switchTab('subs')" id="btn-subs" class="flex-1 py-3 rounded-xl flex items-center justify-center gap-2 transition-all tab-active">
+            <button onclick="switchTab('subs')" id="btn-subs" class="flex-1 py-3 rounded-xl text-xs flex items-center justify-center gap-2 transition-all tab-active">
                 <i data-lucide="clock" class="w-4"></i> Assinaturas
             </button>
-            <button onclick="switchTab('bet')" id="btn-bet" class="flex-1 py-3 rounded-xl flex items-center justify-center gap-2 transition-all opacity-50">
+            <button onclick="switchTab('bet')" id="btn-bet" class="flex-1 py-3 rounded-xl text-xs flex items-center justify-center gap-2 transition-all opacity-50">
                 <i data-lucide="target" class="w-4"></i> Rollover
+            </button>
+            <button onclick="switchTab('notes')" id="btn-notes" class="flex-1 py-3 rounded-xl text-xs flex items-center justify-center gap-2 transition-all opacity-50">
+                <i data-lucide="clipboard-list" class="w-4"></i> Notas
             </button>
         </div>
 
+        <!-- TAB: ASSINATURAS (Original) -->
         <div id="tab-subs" class="space-y-4">
             <div class="bg-zinc-900 p-5 rounded-3xl border border-zinc-800 shadow-xl">
                 <h2 class="text-xs font-bold uppercase mb-4 opacity-50 tracking-tighter">Novo Registro</h2>
@@ -41,6 +48,7 @@
             <div id="subs-list" class="space-y-3"></div>
         </div>
 
+        <!-- TAB: ROLLOVER (Original) -->
         <div id="tab-bet" class="hidden space-y-4">
             <div class="bg-zinc-900 p-5 rounded-3xl border border-zinc-800 shadow-xl">
                 <h2 class="text-xs font-bold uppercase mb-4 opacity-50 tracking-tighter">Gerenciar Contas</h2>
@@ -92,6 +100,22 @@
                 </div>
             </div>
         </div>
+
+        <!-- NOVA TAB: ANOTAÇÕES (Nova) -->
+        <div id="tab-notes" class="hidden space-y-4">
+            <div class="bg-zinc-900 p-5 rounded-3xl border border-zinc-800 shadow-xl">
+                <h2 class="text-xs font-bold uppercase mb-4 opacity-50 tracking-tighter">Nova Anotação</h2>
+                <textarea id="note-text" placeholder="O que precisa ser feito?" class="w-full bg-zinc-800 p-4 rounded-2xl mb-2 outline-none focus:ring-2 ring-purple-500 transition-all resize-none h-24 text-sm"></textarea>
+                <div class="flex gap-2">
+                    <input id="note-date" type="datetime-local" class="flex-1 bg-zinc-800 p-4 rounded-2xl outline-none focus:ring-2 ring-purple-500 text-xs">
+                    <button onclick="addNote()" class="bg-purple-600 hover:bg-purple-500 p-4 rounded-2xl transition-all active:scale-95">
+                        <i data-lucide="sticky-note"></i>
+                    </button>
+                </div>
+            </div>
+            <div id="notes-list" class="space-y-3"></div>
+        </div>
+
     </div>
 
     <script type="module">
@@ -114,20 +138,21 @@
         
         let subs = [];
         let accounts = [];
+        let notes = [];
         let selectedAccId = null;
 
         // --- TABS ---
         window.switchTab = (tab) => {
-            document.getElementById('tab-subs').classList.toggle('hidden', tab !== 'subs');
-            document.getElementById('tab-bet').classList.toggle('hidden', tab !== 'bet');
-            document.getElementById('btn-subs').classList.toggle('tab-active', tab === 'subs');
-            document.getElementById('btn-subs').classList.toggle('opacity-50', tab !== 'subs');
-            document.getElementById('btn-bet').classList.toggle('tab-active', tab === 'bet');
-            document.getElementById('btn-bet').classList.toggle('opacity-50', tab !== 'bet');
+            const tabs = ['subs', 'bet', 'notes'];
+            tabs.forEach(t => {
+                document.getElementById(`tab-${t}`).classList.toggle('hidden', t !== tab);
+                document.getElementById(`btn-${t}`).classList.toggle('tab-active', t === tab);
+                document.getElementById(`btn-${t}`).classList.toggle('opacity-50', t !== tab);
+            });
             lucide.createIcons();
         };
 
-        // --- SUBSCRIPTIONS LOGIC ---
+        // --- SUBSCRIPTIONS LOGIC (Original) ---
         onValue(ref(db, 'assinaturas'), (snapshot) => {
             const data = snapshot.val();
             subs = data ? Object.keys(data).map(key => ({ id: key, ...data[key] })) : [];
@@ -138,18 +163,14 @@
             const name = document.getElementById('sub-name').value;
             const days = document.getElementById('sub-days').value;
             if(!name || !days) return;
-
             const expiry = Date.now() + (parseInt(days) * 24 * 60 * 60 * 1000);
             push(ref(db, 'assinaturas'), { name, expiry });
-
             document.getElementById('sub-name').value = '';
             document.getElementById('sub-days').value = '';
         };
 
         window.removeSub = (id) => {
-            if(confirm("Remover esta assinatura?")) {
-                remove(ref(db, `assinaturas/${id}`));
-            }
+            if(confirm("Remover esta assinatura?")) remove(ref(db, `assinaturas/${id}`));
         };
 
         function renderSubs() {
@@ -168,12 +189,12 @@
                     </button>
                 `;
                 list.appendChild(card);
-                startTimer(sub);
+                startSubTimer(sub);
             });
             lucide.createIcons();
         }
 
-        function startTimer(sub) {
+        function startSubTimer(sub) {
             const el = document.getElementById(`timer-${sub.id}`);
             const updateTimer = () => {
                 if(!el) return;
@@ -193,7 +214,7 @@
             setInterval(updateTimer, 1000);
         }
 
-        // --- ACCOUNTS LOGIC ---
+        // --- ACCOUNTS LOGIC (Original) ---
         onValue(ref(db, 'contas'), (snapshot) => {
             const data = snapshot.val();
             accounts = data ? Object.keys(data).map(key => ({ id: key, ...data[key] })) : [];
@@ -206,12 +227,9 @@
             const goalInput = document.getElementById('acc-goal');
             const name = nameInput.value.trim();
             const goal = parseFloat(goalInput.value);
-
             if(!name || isNaN(goal)) return alert("Preencha os campos!");
-            
             push(ref(db, 'contas'), { name, current: 0, goal });
-            nameInput.value = '';
-            goalInput.value = '';
+            nameInput.value = ''; goalInput.value = '';
         };
 
         window.selectAccount = (id) => {
@@ -229,13 +247,11 @@
                 document.getElementById('panel-empty').classList.remove('hidden');
                 return;
             };
-            
             const progress = Math.min((acc.current / acc.goal) * 100, 100);
             document.getElementById('active-acc-name').innerText = acc.name;
             document.getElementById('rollover-val').innerText = `R$ ${acc.current.toFixed(2)}`;
             document.getElementById('goal-info').innerText = `Depósito/Meta: R$ ${acc.goal.toFixed(2)}`;
             document.getElementById('progress-bar').style.width = `${progress}%`;
-            
             const isDone = acc.current >= acc.goal;
             document.getElementById('status-badge').classList.toggle('hidden', !isDone);
         };
@@ -244,21 +260,16 @@
             const input = document.getElementById('bet-input');
             const val = parseFloat(input.value || 0);
             if(val <= 0 || !selectedAccId) return;
-            
             const acc = accounts.find(a => a.id === selectedAccId);
-            update(ref(db, `contas/${selectedAccId}`), {
-                current: (acc.current || 0) + val
-            });
-            input.value = ''; // Limpa após adicionar
+            update(ref(db, `contas/${selectedAccId}`), { current: (acc.current || 0) + val });
+            input.value = '';
         };
 
         window.addMoreGoal = () => {
             const extra = parseFloat(prompt("Qual o valor do novo depósito?"));
             if(isNaN(extra) || extra <= 0) return;
             const acc = accounts.find(a => a.id === selectedAccId);
-            update(ref(db, `contas/${selectedAccId}`), {
-                goal: acc.goal + extra
-            });
+            update(ref(db, `contas/${selectedAccId}`), { goal: acc.goal + extra });
         };
 
         window.deleteAccount = () => {
@@ -286,6 +297,96 @@
                 `;
                 list.appendChild(card);
             });
+        }
+
+        // --- NOTES LOGIC (Nova) ---
+        onValue(ref(db, 'anotacoes'), (snapshot) => {
+            const data = snapshot.val();
+            notes = data ? Object.keys(data).map(key => ({ id: key, ...data[key] })) : [];
+            renderNotes();
+        });
+
+        window.addNote = () => {
+            const text = document.getElementById('note-text').value;
+            const date = document.getElementById('note-date').value;
+            if(!text) return;
+            push(ref(db, 'anotacoes'), { 
+                text, 
+                deadline: date ? new Date(date).getTime() : null,
+                done: false,
+                createdAt: Date.now()
+            });
+            document.getElementById('note-text').value = '';
+            document.getElementById('note-date').value = '';
+        };
+
+        window.toggleNote = (id, currentStatus) => {
+            update(ref(db, `anotacoes/${id}`), { done: !currentStatus });
+        };
+
+        window.deleteNote = (id) => {
+            if(confirm("Excluir anotação?")) remove(ref(db, `anotacoes/${id}`));
+        };
+
+        function renderNotes() {
+            const list = document.getElementById('notes-list');
+            list.innerHTML = '';
+            notes.sort((a, b) => b.createdAt - a.createdAt).forEach(note => {
+                const card = document.createElement('div');
+                card.className = `p-5 rounded-3xl border border-zinc-800 transition-all shadow-lg ${note.done ? 'note-done' : 'bg-zinc-900'}`;
+                
+                let timerHtml = '';
+                if(note.deadline && !note.done) {
+                    timerHtml = `<p class="text-[10px] font-mono mt-2" id="note-timer-${note.id}">Calculando tempo...</p>`;
+                }
+
+                card.innerHTML = `
+                    <div class="flex justify-between items-start gap-4">
+                        <div class="flex-1">
+                            <p class="text-sm font-medium ${note.done ? 'text-emerald-100 line-through opacity-50' : 'text-zinc-200'}">${note.text}</p>
+                            ${timerHtml}
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="toggleNote('${note.id}', ${note.done})" class="p-2 rounded-xl ${note.done ? 'bg-emerald-500 text-white' : 'bg-zinc-800 text-zinc-400'} transition-all">
+                                <i data-lucide="${note.done ? 'check-circle-2' : 'circle'}" class="w-5"></i>
+                            </button>
+                            <button onclick="deleteNote('${note.id}')" class="p-2 text-zinc-600 hover:text-red-500 transition-colors">
+                                <i data-lucide="trash-2" class="w-5"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+                list.appendChild(card);
+                if(note.deadline && !note.done) startNoteTimer(note);
+            });
+            lucide.createIcons();
+        }
+
+        function startNoteTimer(note) {
+            const el = document.getElementById(`note-timer-${note.id}`);
+            const updateNoteTimer = () => {
+                if(!el) return;
+                const diff = note.deadline - Date.now();
+                
+                if(diff <= 0) {
+                    el.innerText = "⚠️ ATRASADO";
+                    el.className = "text-[10px] font-black text-red-500 mt-2 animate-pulse";
+                    return;
+                }
+
+                const d = Math.floor(diff / 86400000);
+                const h = Math.floor((diff / 3600000) % 24);
+                const m = Math.floor((diff / 60000) % 60);
+                const s = Math.floor((diff / 1000) % 60);
+                
+                el.innerText = `Faltam: ${d}d ${h}h ${m}m ${s}s`;
+                el.className = "text-[10px] font-mono text-purple-400 mt-2";
+            };
+            updateNoteTimer();
+            const interval = setInterval(() => {
+                if(!document.getElementById(`note-timer-${note.id}`)) clearInterval(interval);
+                updateNoteTimer();
+            }, 1000);
         }
 
         // Init icons
