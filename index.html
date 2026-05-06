@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestor de Assinaturas e Rollover</title>
+    <title>Organizador</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
@@ -18,7 +18,6 @@
 <body class="p-4 font-sans select-none">
     <div class="max-w-md mx-auto mb-10">
         
-        <!-- HEADER / TABS -->
         <div class="flex gap-2 mb-6 bg-zinc-900 p-1 rounded-2xl shadow-lg border border-zinc-800">
             <button onclick="switchTab('subs')" id="btn-subs" class="flex-1 py-3 rounded-xl flex items-center justify-center gap-2 transition-all tab-active">
                 <i data-lucide="clock" class="w-4"></i> Assinaturas
@@ -28,7 +27,6 @@
             </button>
         </div>
 
-        <!-- ABA 1: ASSINATURAS -->
         <div id="tab-subs" class="space-y-4">
             <div class="bg-zinc-900 p-5 rounded-3xl border border-zinc-800 shadow-xl">
                 <h2 class="text-xs font-bold uppercase mb-4 opacity-50 tracking-tighter">Novo Registro</h2>
@@ -43,10 +41,7 @@
             <div id="subs-list" class="space-y-3"></div>
         </div>
 
-        <!-- ABA 2: ROLLOVER (SOLO E CONTAS) -->
         <div id="tab-bet" class="hidden space-y-4">
-            
-            <!-- Criação de Conta -->
             <div class="bg-zinc-900 p-5 rounded-3xl border border-zinc-800 shadow-xl">
                 <h2 class="text-xs font-bold uppercase mb-4 opacity-50 tracking-tighter">Gerenciar Contas</h2>
                 <div class="space-y-2">
@@ -60,15 +55,11 @@
                 </div>
             </div>
 
-            <!-- Lista de Contas Horizontal -->
-            <div id="acc-list" class="flex gap-3 overflow-x-auto pb-4 no-scrollbar pt-2">
-                <!-- Cards de conta entram aqui -->
-            </div>
+            <div id="acc-list" class="flex gap-3 overflow-x-auto pb-4 no-scrollbar pt-2"></div>
 
-            <!-- Painel de Operação -->
             <div id="action-panel" class="bg-zinc-900 p-6 rounded-[2.5rem] border border-zinc-800 text-center shadow-2xl relative overflow-hidden">
                 <div id="panel-empty" class="py-10 opacity-30 italic text-sm">
-                    Selecione uma conta acima ou use o modo Solo
+                    Selecione uma conta acima
                 </div>
                 
                 <div id="panel-content" class="hidden">
@@ -78,7 +69,6 @@
                         <div id="goal-info" class="text-sm opacity-40 mt-1 font-medium"></div>
                     </div>
 
-                    <!-- Barra de Progresso -->
                     <div class="w-full bg-zinc-800 h-4 rounded-full mb-6 p-1 border border-zinc-700">
                         <div id="progress-bar" class="h-full bg-emerald-500 rounded-full transition-all duration-700" style="width: 0%"></div>
                     </div>
@@ -91,7 +81,7 @@
                         <input id="bet-input" type="number" placeholder="Valor da entrada" class="w-full bg-zinc-800 p-5 rounded-2xl mb-4 text-center text-3xl font-bold outline-none border-2 border-transparent focus:border-emerald-500 transition-all">
                     </div>
                     
-                    <button onclick="addToRollover()" class="w-full bg-emerald-600 hover:bg-emerald-500 py-5 rounded-2xl font-black text-xl shadow-lg shadow-emerald-900/20 active:scale-[0.98] transition-all">
+                    <button onclick="addToRollover()" class="w-full bg-emerald-600 hover:bg-emerald-500 py-5 rounded-2xl font-black text-xl shadow-lg active:scale-[0.98] transition-all">
                         ADICIONAR
                     </button>
 
@@ -104,15 +94,30 @@
         </div>
     </div>
 
-    <script>
-        // Inicialização Global
-        lucide.createIcons();
-        let subs = JSON.parse(localStorage.getItem('my_subs') || '[]');
-        let accounts = JSON.parse(localStorage.getItem('my_accs') || '[]');
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getDatabase, ref, push, onValue, set, remove, update } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyC3QY0Qy6LBbMi3rxNZ-webjvGrcNwVn-Y",
+            authDomain: "organizador-cc1f4.firebaseapp.com",
+            databaseURL: "https://organizador-cc1f4-default-rtdb.firebaseio.com",
+            projectId: "organizador-cc1f4",
+            storageBucket: "organizador-cc1f4.firebasestorage.app",
+            messagingSenderId: "787865519615",
+            appId: "1:787865519615:web:6e612e336df1058f7093ca",
+            measurementId: "G-QPWYX7CL3K"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        
+        let subs = [];
+        let accounts = [];
         let selectedAccId = null;
 
-        // Gerenciamento de Abas
-        function switchTab(tab) {
+        // --- TABS ---
+        window.switchTab = (tab) => {
             document.getElementById('tab-subs').classList.toggle('hidden', tab !== 'subs');
             document.getElementById('tab-bet').classList.toggle('hidden', tab !== 'bet');
             document.getElementById('btn-subs').classList.toggle('tab-active', tab === 'subs');
@@ -120,121 +125,32 @@
             document.getElementById('btn-bet').classList.toggle('tab-active', tab === 'bet');
             document.getElementById('btn-bet').classList.toggle('opacity-50', tab !== 'bet');
             lucide.createIcons();
-        }
+        };
 
-        // --- SISTEMA DE CONTAS ---
-        function addAccount() {
-            const nameInput = document.getElementById('acc-name');
-            const goalInput = document.getElementById('acc-goal');
-            const name = nameInput.value.trim();
-            const goal = parseFloat(goalInput.value);
+        // --- SUBSCRIPTIONS LOGIC ---
+        onValue(ref(db, 'assinaturas'), (snapshot) => {
+            const data = snapshot.val();
+            subs = data ? Object.keys(data).map(key => ({ id: key, ...data[key] })) : [];
+            renderSubs();
+        });
 
-            if(!name || isNaN(goal)) {
-                alert("Preencha o nome e o valor do depósito corretamente.");
-                return;
-            }
-            
-            const newAcc = { id: Date.now(), name: name, current: 0, goal: goal };
-            accounts.push(newAcc);
-            save();
-            renderAccounts();
-            nameInput.value = '';
-            goalInput.value = '';
-        }
-
-        function renderAccounts() {
-            const list = document.getElementById('acc-list');
-            list.innerHTML = '';
-            
-            // Adiciona a opção "SOLO" por padrão se quiser, mas aqui focamos na sua lista
-            accounts.forEach(acc => {
-                const isSelected = selectedAccId === acc.id;
-                const isDone = acc.current >= acc.goal;
-                
-                const card = document.createElement('div');
-                card.onclick = () => selectAccount(acc.id);
-                card.className = `min-w-[130px] p-4 rounded-2xl border-2 border-zinc-800 bg-zinc-900 cursor-pointer transition-all ${isSelected ? 'selected-acc shadow-lg shadow-emerald-900/10' : ''}`;
-                card.innerHTML = `
-                    <div class="text-[10px] font-bold uppercase opacity-40 truncate mb-1">${acc.name}</div>
-                    <div class="text-lg font-black ${isDone ? 'text-emerald-400' : 'text-zinc-200'}">
-                        ${isDone ? 'BATIDO' : 'R$ '+acc.current.toFixed(0)}
-                    </div>
-                    <div class="text-[9px] opacity-30">Meta: R$ ${acc.goal}</div>
-                `;
-                list.appendChild(card);
-            });
-        }
-
-        function selectAccount(id) {
-            selectedAccId = id;
-            document.getElementById('panel-empty').classList.add('hidden');
-            document.getElementById('panel-content').classList.remove('hidden');
-            updatePanel();
-            renderAccounts();
-        }
-
-        function updatePanel() {
-            const acc = accounts.find(a => a.id === selectedAccId);
-            if(!acc) return;
-            
-            const progress = Math.min((acc.current / acc.goal) * 100, 100);
-            document.getElementById('active-acc-name').innerText = acc.name;
-            document.getElementById('rollover-val').innerText = `R$ ${acc.current.toFixed(2)}`;
-            document.getElementById('goal-info').innerText = `Depósito/Meta: R$ ${acc.goal.toFixed(2)}`;
-            document.getElementById('progress-bar').style.width = `${progress}%`;
-            
-            const isDone = acc.current >= acc.goal;
-            document.getElementById('status-badge').classList.toggle('hidden', !isDone);
-            document.getElementById('progress-bar').className = `h-full rounded-full transition-all duration-700 ${isDone ? 'bg-emerald-400' : 'bg-emerald-600'}`;
-        }
-
-        function addToRollover() {
-            const input = document.getElementById('bet-input');
-            const val = parseFloat(input.value || 0);
-            if(val <= 0 || !selectedAccId) return;
-            
-            const acc = accounts.find(a => a.id === selectedAccId);
-            acc.current += val;
-            save();
-            updatePanel();
-            renderAccounts();
-            // Valor não é resetado conforme pedido anterior
-        }
-
-        function addMoreGoal() {
-            const extra = parseFloat(prompt("Qual o valor do novo depósito?"));
-            if(isNaN(extra) || extra <= 0) return;
-            const acc = accounts.find(a => a.id === selectedAccId);
-            acc.goal += extra;
-            save();
-            updatePanel();
-            renderAccounts();
-        }
-
-        function deleteAccount() {
-            if(confirm("Deseja realmente excluir esta conta e todo o progresso?")) {
-                accounts = accounts.filter(a => a.id !== selectedAccId);
-                selectedAccId = null;
-                document.getElementById('panel-content').classList.add('hidden');
-                document.getElementById('panel-empty').classList.remove('hidden');
-                save();
-                renderAccounts();
-            }
-        }
-
-        // --- SISTEMA DE ASSINATURAS ---
-        function addSubscription() {
+        window.addSubscription = () => {
             const name = document.getElementById('sub-name').value;
             const days = document.getElementById('sub-days').value;
             if(!name || !days) return;
 
             const expiry = Date.now() + (parseInt(days) * 24 * 60 * 60 * 1000);
-            subs.push({ id: Date.now(), name, expiry });
-            save();
-            renderSubs();
+            push(ref(db, 'assinaturas'), { name, expiry });
+
             document.getElementById('sub-name').value = '';
             document.getElementById('sub-days').value = '';
-        }
+        };
+
+        window.removeSub = (id) => {
+            if(confirm("Remover esta assinatura?")) {
+                remove(ref(db, `assinaturas/${id}`));
+            }
+        };
 
         function renderSubs() {
             const list = document.getElementById('subs-list');
@@ -247,25 +163,24 @@
                         <h3 class="font-bold text-zinc-200 text-sm">${sub.name}</h3>
                         <p class="text-xs font-mono text-blue-400 mt-1" id="timer-${sub.id}">Calculando...</p>
                     </div>
-                    <button onclick="removeSub(${sub.id})" class="p-2 text-zinc-600 hover:text-red-500 transition-colors">
+                    <button onclick="removeSub('${sub.id}')" class="p-2 text-zinc-600 hover:text-red-500 transition-colors">
                         <i data-lucide="trash-2" class="w-5"></i>
                     </button>
                 `;
                 list.appendChild(card);
-                updateTimer(sub);
+                startTimer(sub);
             });
             lucide.createIcons();
         }
 
-        function updateTimer(sub) {
+        function startTimer(sub) {
             const el = document.getElementById(`timer-${sub.id}`);
-            const timer = setInterval(() => {
-                if(!el) { clearInterval(timer); return; }
+            const updateTimer = () => {
+                if(!el) return;
                 const diff = sub.expiry - Date.now();
                 if(diff <= 0) {
                     el.innerText = "ASSINATURA EXPIRADA";
                     el.className = "text-xs font-bold text-red-500 mt-1";
-                    clearInterval(timer);
                     return;
                 }
                 const d = Math.floor(diff / 86400000);
@@ -273,28 +188,108 @@
                 const m = Math.floor((diff / 60000) % 60);
                 const s = Math.floor((diff / 1000) % 60);
                 el.innerText = `${d}d ${h}h ${m}m ${s}s restante`;
-            }, 1000);
+            };
+            updateTimer();
+            setInterval(updateTimer, 1000);
         }
 
-        function removeSub(id) {
-            if(confirm("Remover esta assinatura?")) {
-                subs = subs.filter(s => s.id !== id);
-                save();
-                renderSubs();
-            }
-        }
-
-        function save() {
-            localStorage.setItem('my_subs', JSON.stringify(subs));
-            localStorage.setItem('my_accs', JSON.stringify(accounts));
-        }
-
-        // Boot
-        window.onload = () => {
+        // --- ACCOUNTS LOGIC ---
+        onValue(ref(db, 'contas'), (snapshot) => {
+            const data = snapshot.val();
+            accounts = data ? Object.keys(data).map(key => ({ id: key, ...data[key] })) : [];
             renderAccounts();
-            renderSubs();
-            lucide.createIcons();
+            if (selectedAccId) updatePanel();
+        });
+
+        window.addAccount = () => {
+            const nameInput = document.getElementById('acc-name');
+            const goalInput = document.getElementById('acc-goal');
+            const name = nameInput.value.trim();
+            const goal = parseFloat(goalInput.value);
+
+            if(!name || isNaN(goal)) return alert("Preencha os campos!");
+            
+            push(ref(db, 'contas'), { name, current: 0, goal });
+            nameInput.value = '';
+            goalInput.value = '';
         };
+
+        window.selectAccount = (id) => {
+            selectedAccId = id;
+            document.getElementById('panel-empty').classList.add('hidden');
+            document.getElementById('panel-content').classList.remove('hidden');
+            updatePanel();
+            renderAccounts();
+        };
+
+        window.updatePanel = () => {
+            const acc = accounts.find(a => a.id === selectedAccId);
+            if(!acc) {
+                document.getElementById('panel-content').classList.add('hidden');
+                document.getElementById('panel-empty').classList.remove('hidden');
+                return;
+            };
+            
+            const progress = Math.min((acc.current / acc.goal) * 100, 100);
+            document.getElementById('active-acc-name').innerText = acc.name;
+            document.getElementById('rollover-val').innerText = `R$ ${acc.current.toFixed(2)}`;
+            document.getElementById('goal-info').innerText = `Depósito/Meta: R$ ${acc.goal.toFixed(2)}`;
+            document.getElementById('progress-bar').style.width = `${progress}%`;
+            
+            const isDone = acc.current >= acc.goal;
+            document.getElementById('status-badge').classList.toggle('hidden', !isDone);
+        };
+
+        window.addToRollover = () => {
+            const input = document.getElementById('bet-input');
+            const val = parseFloat(input.value || 0);
+            if(val <= 0 || !selectedAccId) return;
+            
+            const acc = accounts.find(a => a.id === selectedAccId);
+            update(ref(db, `contas/${selectedAccId}`), {
+                current: (acc.current || 0) + val
+            });
+            input.value = ''; // Limpa após adicionar
+        };
+
+        window.addMoreGoal = () => {
+            const extra = parseFloat(prompt("Qual o valor do novo depósito?"));
+            if(isNaN(extra) || extra <= 0) return;
+            const acc = accounts.find(a => a.id === selectedAccId);
+            update(ref(db, `contas/${selectedAccId}`), {
+                goal: acc.goal + extra
+            });
+        };
+
+        window.deleteAccount = () => {
+            if(confirm("Excluir esta conta permanentemente?")) {
+                remove(ref(db, `contas/${selectedAccId}`));
+                selectedAccId = null;
+            }
+        };
+
+        function renderAccounts() {
+            const list = document.getElementById('acc-list');
+            list.innerHTML = '';
+            accounts.forEach(acc => {
+                const isSelected = selectedAccId === acc.id;
+                const isDone = acc.current >= acc.goal;
+                const card = document.createElement('div');
+                card.onclick = () => window.selectAccount(acc.id);
+                card.className = `min-w-[130px] p-4 rounded-2xl border-2 border-zinc-800 bg-zinc-900 cursor-pointer transition-all ${isSelected ? 'selected-acc shadow-lg shadow-emerald-900/10' : ''}`;
+                card.innerHTML = `
+                    <div class="text-[10px] font-bold uppercase opacity-40 truncate mb-1">${acc.name}</div>
+                    <div class="text-lg font-black ${isDone ? 'text-emerald-400' : 'text-zinc-200'}">
+                        ${isDone ? 'BATIDO' : 'R$ '+(acc.current || 0).toFixed(0)}
+                    </div>
+                    <div class="text-[9px] opacity-30">Meta: R$ ${acc.goal}</div>
+                `;
+                list.appendChild(card);
+            });
+        }
+
+        // Init icons
+        lucide.createIcons();
     </script>
 </body>
 </html>
