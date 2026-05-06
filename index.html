@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Organizador Pro</title>
+    <title>Organizador Ultimate</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         body { background-color: #09090b; color: #f4f4f5; -webkit-tap-highlight-color: transparent; }
         .tab-active { background-color: #27272a; border-bottom: 2px solid #3b82f6; }
         .selected-acc { border: 2px solid #10b981 !important; background-color: #064e3b44 !important; }
-        .note-done { border: 2px solid #10b981 !important; background-color: #064e3b44 !important; }
+        .note-done { border: 2px solid #10b981 !important; background-color: #064e3b22 !important; opacity: 0.8; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         input[type="number"]::-webkit-inner-spin-button { display: none; }
@@ -37,7 +37,7 @@
         <div id="tab-subs" class="space-y-4">
             <div class="bg-zinc-900 p-5 rounded-3xl border border-zinc-800 shadow-xl">
                 <h2 class="text-xs font-bold uppercase mb-4 opacity-50 tracking-tighter">Novo Registro</h2>
-                <input id="sub-name" placeholder="Ex: PC Gamer Nuvem" class="w-full bg-zinc-800 p-4 rounded-2xl mb-2 outline-none focus:ring-2 ring-blue-500 transition-all">
+                <input id="sub-name" placeholder="Ex: Game Pass" class="w-full bg-zinc-800 p-4 rounded-2xl mb-2 outline-none focus:ring-2 ring-blue-500 transition-all">
                 <div class="flex gap-2">
                     <input id="sub-days" type="number" placeholder="Dias" class="flex-1 bg-zinc-800 p-4 rounded-2xl outline-none focus:ring-2 ring-blue-500">
                     <button onclick="addSubscription()" class="bg-blue-600 hover:bg-blue-500 p-4 rounded-2xl transition-all active:scale-95">
@@ -55,61 +55,48 @@
                 <div class="space-y-2">
                     <input id="acc-name" placeholder="Nome da Conta" class="w-full bg-zinc-800 p-4 rounded-2xl outline-none focus:ring-2 ring-emerald-500">
                     <div class="flex gap-2">
-                        <input id="acc-goal" type="number" placeholder="Valor Depósito (Meta)" class="flex-1 bg-zinc-800 p-4 rounded-2xl outline-none focus:ring-2 ring-emerald-500">
+                        <input id="acc-goal" type="number" placeholder="Valor Meta" class="flex-1 bg-zinc-800 p-4 rounded-2xl outline-none focus:ring-2 ring-emerald-500">
                         <button onclick="addAccount()" class="bg-emerald-600 hover:bg-emerald-500 p-4 rounded-2xl transition-all active:scale-95">
                             <i data-lucide="user-plus"></i>
                         </button>
                     </div>
                 </div>
             </div>
-
             <div id="acc-list" class="flex gap-3 overflow-x-auto pb-4 no-scrollbar pt-2"></div>
-
             <div id="action-panel" class="bg-zinc-900 p-6 rounded-[2.5rem] border border-zinc-800 text-center shadow-2xl relative overflow-hidden">
-                <div id="panel-empty" class="py-10 opacity-30 italic text-sm">
-                    Selecione uma conta acima
-                </div>
-                
+                <div id="panel-empty" class="py-10 opacity-30 italic text-sm">Selecione uma conta</div>
                 <div id="panel-content" class="hidden">
                     <div class="mb-4">
                         <h3 id="active-acc-name" class="text-emerald-500 font-bold uppercase text-xs tracking-widest"></h3>
                         <div id="rollover-val" class="text-5xl font-black mt-2 text-zinc-100">R$ 0.00</div>
                         <div id="goal-info" class="text-sm opacity-40 mt-1 font-medium"></div>
                     </div>
-
                     <div class="w-full bg-zinc-800 h-4 rounded-full mb-6 p-1 border border-zinc-700">
                         <div id="progress-bar" class="h-full bg-emerald-500 rounded-full transition-all duration-700" style="width: 0%"></div>
                     </div>
-
-                    <div id="status-badge" class="hidden mb-6 p-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/50 text-emerald-400 font-black text-sm animate-pulse">
-                        🎯 ROLLOVER BATIDO!
-                    </div>
-
-                    <div class="relative group">
-                        <input id="bet-input" type="number" placeholder="Valor da entrada" class="w-full bg-zinc-800 p-5 rounded-2xl mb-4 text-center text-3xl font-bold outline-none border-2 border-transparent focus:border-emerald-500 transition-all">
-                    </div>
-                    
-                    <button onclick="addToRollover()" class="w-full bg-emerald-600 hover:bg-emerald-500 py-5 rounded-2xl font-black text-xl shadow-lg active:scale-[0.98] transition-all">
-                        ADICIONAR
-                    </button>
-
+                    <div id="status-badge" class="hidden mb-6 p-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/50 text-emerald-400 font-black text-sm">🎯 ROLLOVER BATIDO!</div>
+                    <input id="bet-input" type="number" placeholder="Valor da entrada" class="w-full bg-zinc-800 p-5 rounded-2xl mb-4 text-center text-3xl font-bold outline-none border-2 border-transparent focus:border-emerald-500">
+                    <button onclick="addToRollover()" class="w-full bg-emerald-600 hover:bg-emerald-500 py-5 rounded-2xl font-black text-xl shadow-lg active:scale-95 transition-all">ADICIONAR</button>
                     <div class="flex gap-2 mt-6">
-                        <button onclick="addMoreGoal()" class="flex-1 bg-zinc-800 hover:bg-zinc-700 py-3 rounded-xl text-[10px] font-bold uppercase opacity-60">Novo Depósito</button>
-                        <button onclick="deleteAccount()" class="flex-1 bg-red-900/10 hover:bg-red-900/20 py-3 rounded-xl text-[10px] font-bold uppercase text-red-500">Excluir Conta</button>
+                        <button onclick="addMoreGoal()" class="flex-1 bg-zinc-800 py-3 rounded-xl text-[10px] font-bold uppercase opacity-60">Novo Depósito</button>
+                        <button onclick="deleteAccount()" class="flex-1 bg-red-900/10 py-3 rounded-xl text-[10px] font-bold uppercase text-red-500">Excluir</button>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- NOVA TAB: ANOTAÇÕES (Nova) -->
+        <!-- TAB: ANOTAÇÕES (Atualizada com Cronômetro Detalhado) -->
         <div id="tab-notes" class="hidden space-y-4">
             <div class="bg-zinc-900 p-5 rounded-3xl border border-zinc-800 shadow-xl">
                 <h2 class="text-xs font-bold uppercase mb-4 opacity-50 tracking-tighter">Nova Anotação</h2>
-                <textarea id="note-text" placeholder="O que precisa ser feito?" class="w-full bg-zinc-800 p-4 rounded-2xl mb-2 outline-none focus:ring-2 ring-purple-500 transition-all resize-none h-24 text-sm"></textarea>
+                <textarea id="note-text" placeholder="Descreva sua tarefa..." class="w-full bg-zinc-800 p-4 rounded-2xl mb-2 outline-none focus:ring-2 ring-purple-500 transition-all resize-none h-24 text-sm"></textarea>
                 <div class="flex gap-2">
-                    <input id="note-date" type="datetime-local" class="flex-1 bg-zinc-800 p-4 rounded-2xl outline-none focus:ring-2 ring-purple-500 text-xs">
+                    <div class="flex-1 bg-zinc-800 rounded-2xl px-4 flex items-center">
+                        <i data-lucide="calendar" class="w-4 text-zinc-500 mr-2"></i>
+                        <input id="note-date" type="datetime-local" class="w-full bg-transparent py-4 outline-none text-xs">
+                    </div>
                     <button onclick="addNote()" class="bg-purple-600 hover:bg-purple-500 p-4 rounded-2xl transition-all active:scale-95">
-                        <i data-lucide="sticky-note"></i>
+                        <i data-lucide="send"></i>
                     </button>
                 </div>
             </div>
@@ -143,8 +130,7 @@
 
         // --- TABS ---
         window.switchTab = (tab) => {
-            const tabs = ['subs', 'bet', 'notes'];
-            tabs.forEach(t => {
+            ['subs', 'bet', 'notes'].forEach(t => {
                 document.getElementById(`tab-${t}`).classList.toggle('hidden', t !== tab);
                 document.getElementById(`btn-${t}`).classList.toggle('tab-active', t === tab);
                 document.getElementById(`btn-${t}`).classList.toggle('opacity-50', t !== tab);
@@ -152,7 +138,7 @@
             lucide.createIcons();
         };
 
-        // --- SUBSCRIPTIONS LOGIC (Original) ---
+        // --- SUBSCRIPTIONS ---
         onValue(ref(db, 'assinaturas'), (snapshot) => {
             const data = snapshot.val();
             subs = data ? Object.keys(data).map(key => ({ id: key, ...data[key] })) : [];
@@ -163,58 +149,32 @@
             const name = document.getElementById('sub-name').value;
             const days = document.getElementById('sub-days').value;
             if(!name || !days) return;
-            const expiry = Date.now() + (parseInt(days) * 24 * 60 * 60 * 1000);
-            push(ref(db, 'assinaturas'), { name, expiry });
-            document.getElementById('sub-name').value = '';
-            document.getElementById('sub-days').value = '';
+            push(ref(db, 'assinaturas'), { name, expiry: Date.now() + (parseInt(days) * 86400000) });
+            document.getElementById('sub-name').value = ''; document.getElementById('sub-days').value = '';
         };
 
-        window.removeSub = (id) => {
-            if(confirm("Remover esta assinatura?")) remove(ref(db, `assinaturas/${id}`));
-        };
+        window.removeSub = (id) => { if(confirm("Remover?")) remove(ref(db, `assinaturas/${id}`)); };
 
         function renderSubs() {
             const list = document.getElementById('subs-list');
             list.innerHTML = '';
             subs.forEach(sub => {
                 const card = document.createElement('div');
-                card.className = "bg-zinc-900 p-5 rounded-3xl border border-zinc-800 flex justify-between items-center shadow-lg";
+                card.className = "bg-zinc-900 p-5 rounded-3xl border border-zinc-800 flex justify-between items-center";
                 card.innerHTML = `
-                    <div class="flex-1">
-                        <h3 class="font-bold text-zinc-200 text-sm">${sub.name}</h3>
+                    <div>
+                        <h3 class="font-bold text-sm">${sub.name}</h3>
                         <p class="text-xs font-mono text-blue-400 mt-1" id="timer-${sub.id}">Calculando...</p>
                     </div>
-                    <button onclick="removeSub('${sub.id}')" class="p-2 text-zinc-600 hover:text-red-500 transition-colors">
-                        <i data-lucide="trash-2" class="w-5"></i>
-                    </button>
+                    <button onclick="removeSub('${sub.id}')" class="text-zinc-600 hover:text-red-500"><i data-lucide="trash-2" class="w-5"></i></button>
                 `;
                 list.appendChild(card);
-                startSubTimer(sub);
+                startTimer(sub, `timer-${sub.id}`, "EXPIRADA");
             });
             lucide.createIcons();
         }
 
-        function startSubTimer(sub) {
-            const el = document.getElementById(`timer-${sub.id}`);
-            const updateTimer = () => {
-                if(!el) return;
-                const diff = sub.expiry - Date.now();
-                if(diff <= 0) {
-                    el.innerText = "ASSINATURA EXPIRADA";
-                    el.className = "text-xs font-bold text-red-500 mt-1";
-                    return;
-                }
-                const d = Math.floor(diff / 86400000);
-                const h = Math.floor((diff / 3600000) % 24);
-                const m = Math.floor((diff / 60000) % 60);
-                const s = Math.floor((diff / 1000) % 60);
-                el.innerText = `${d}d ${h}h ${m}m ${s}s restante`;
-            };
-            updateTimer();
-            setInterval(updateTimer, 1000);
-        }
-
-        // --- ACCOUNTS LOGIC (Original) ---
+        // --- ACCOUNTS / ROLLOVER ---
         onValue(ref(db, 'contas'), (snapshot) => {
             const data = snapshot.val();
             accounts = data ? Object.keys(data).map(key => ({ id: key, ...data[key] })) : [];
@@ -223,83 +183,62 @@
         });
 
         window.addAccount = () => {
-            const nameInput = document.getElementById('acc-name');
-            const goalInput = document.getElementById('acc-goal');
-            const name = nameInput.value.trim();
-            const goal = parseFloat(goalInput.value);
-            if(!name || isNaN(goal)) return alert("Preencha os campos!");
+            const name = document.getElementById('acc-name').value;
+            const goal = parseFloat(document.getElementById('acc-goal').value);
+            if(!name || isNaN(goal)) return;
             push(ref(db, 'contas'), { name, current: 0, goal });
-            nameInput.value = ''; goalInput.value = '';
+            document.getElementById('acc-name').value = ''; document.getElementById('acc-goal').value = '';
         };
 
         window.selectAccount = (id) => {
             selectedAccId = id;
             document.getElementById('panel-empty').classList.add('hidden');
             document.getElementById('panel-content').classList.remove('hidden');
-            updatePanel();
-            renderAccounts();
+            updatePanel(); renderAccounts();
         };
 
         window.updatePanel = () => {
             const acc = accounts.find(a => a.id === selectedAccId);
-            if(!acc) {
-                document.getElementById('panel-content').classList.add('hidden');
-                document.getElementById('panel-empty').classList.remove('hidden');
-                return;
-            };
-            const progress = Math.min((acc.current / acc.goal) * 100, 100);
+            if(!acc) return;
             document.getElementById('active-acc-name').innerText = acc.name;
             document.getElementById('rollover-val').innerText = `R$ ${acc.current.toFixed(2)}`;
-            document.getElementById('goal-info').innerText = `Depósito/Meta: R$ ${acc.goal.toFixed(2)}`;
-            document.getElementById('progress-bar').style.width = `${progress}%`;
-            const isDone = acc.current >= acc.goal;
-            document.getElementById('status-badge').classList.toggle('hidden', !isDone);
+            document.getElementById('goal-info').innerText = `Meta: R$ ${acc.goal.toFixed(2)}`;
+            const prog = Math.min((acc.current / acc.goal) * 100, 100);
+            document.getElementById('progress-bar').style.width = `${prog}%`;
+            document.getElementById('status-badge').classList.toggle('hidden', acc.current < acc.goal);
         };
 
         window.addToRollover = () => {
-            const input = document.getElementById('bet-input');
-            const val = parseFloat(input.value || 0);
+            const val = parseFloat(document.getElementById('bet-input').value || 0);
             if(val <= 0 || !selectedAccId) return;
             const acc = accounts.find(a => a.id === selectedAccId);
             update(ref(db, `contas/${selectedAccId}`), { current: (acc.current || 0) + val });
-            input.value = '';
+            document.getElementById('bet-input').value = '';
         };
 
         window.addMoreGoal = () => {
-            const extra = parseFloat(prompt("Qual o valor do novo depósito?"));
+            const extra = parseFloat(prompt("Valor do novo depósito:"));
             if(isNaN(extra) || extra <= 0) return;
             const acc = accounts.find(a => a.id === selectedAccId);
             update(ref(db, `contas/${selectedAccId}`), { goal: acc.goal + extra });
         };
 
-        window.deleteAccount = () => {
-            if(confirm("Excluir esta conta permanentemente?")) {
-                remove(ref(db, `contas/${selectedAccId}`));
-                selectedAccId = null;
-            }
-        };
+        window.deleteAccount = () => { if(confirm("Excluir conta?")) { remove(ref(db, `contas/${selectedAccId}`)); selectedAccId = null; } };
 
         function renderAccounts() {
             const list = document.getElementById('acc-list');
             list.innerHTML = '';
             accounts.forEach(acc => {
-                const isSelected = selectedAccId === acc.id;
-                const isDone = acc.current >= acc.goal;
                 const card = document.createElement('div');
                 card.onclick = () => window.selectAccount(acc.id);
-                card.className = `min-w-[130px] p-4 rounded-2xl border-2 border-zinc-800 bg-zinc-900 cursor-pointer transition-all ${isSelected ? 'selected-acc shadow-lg shadow-emerald-900/10' : ''}`;
-                card.innerHTML = `
-                    <div class="text-[10px] font-bold uppercase opacity-40 truncate mb-1">${acc.name}</div>
-                    <div class="text-lg font-black ${isDone ? 'text-emerald-400' : 'text-zinc-200'}">
-                        ${isDone ? 'BATIDO' : 'R$ '+(acc.current || 0).toFixed(0)}
-                    </div>
-                    <div class="text-[9px] opacity-30">Meta: R$ ${acc.goal}</div>
-                `;
+                card.className = `min-w-[130px] p-4 rounded-2xl border-2 border-zinc-800 bg-zinc-900 cursor-pointer ${selectedAccId === acc.id ? 'selected-acc' : ''}`;
+                card.innerHTML = `<div class="text-[10px] font-bold opacity-40 truncate">${acc.name}</div>
+                                  <div class="text-lg font-black">${acc.current >= acc.goal ? 'BATIDO' : 'R$ '+acc.current.toFixed(0)}</div>`;
                 list.appendChild(card);
             });
         }
 
-        // --- NOTES LOGIC (Nova) ---
+        // --- ANOTAÇÕES LOGIC ---
         onValue(ref(db, 'anotacoes'), (snapshot) => {
             const data = snapshot.val();
             notes = data ? Object.keys(data).map(key => ({ id: key, ...data[key] })) : [];
@@ -320,76 +259,66 @@
             document.getElementById('note-date').value = '';
         };
 
-        window.toggleNote = (id, currentStatus) => {
-            update(ref(db, `anotacoes/${id}`), { done: !currentStatus });
-        };
-
-        window.deleteNote = (id) => {
-            if(confirm("Excluir anotação?")) remove(ref(db, `anotacoes/${id}`));
-        };
+        window.toggleNote = (id, status) => update(ref(db, `anotacoes/${id}`), { done: !status });
+        window.deleteNote = (id) => { if(confirm("Excluir?")) remove(ref(db, `anotacoes/${id}`)); };
 
         function renderNotes() {
             const list = document.getElementById('notes-list');
             list.innerHTML = '';
-            notes.sort((a, b) => b.createdAt - a.createdAt).forEach(note => {
+            notes.sort((a,b) => b.createdAt - a.createdAt).forEach(note => {
                 const card = document.createElement('div');
-                card.className = `p-5 rounded-3xl border border-zinc-800 transition-all shadow-lg ${note.done ? 'note-done' : 'bg-zinc-900'}`;
+                card.className = `p-5 rounded-3xl border border-zinc-800 transition-all ${note.done ? 'note-done' : 'bg-zinc-900 shadow-xl'}`;
                 
-                let timerHtml = '';
-                if(note.deadline && !note.done) {
-                    timerHtml = `<p class="text-[10px] font-mono mt-2" id="note-timer-${note.id}">Calculando tempo...</p>`;
-                }
-
+                const timerId = `note-timer-${note.id}`;
                 card.innerHTML = `
                     <div class="flex justify-between items-start gap-4">
                         <div class="flex-1">
-                            <p class="text-sm font-medium ${note.done ? 'text-emerald-100 line-through opacity-50' : 'text-zinc-200'}">${note.text}</p>
-                            ${timerHtml}
+                            <p class="text-sm font-medium ${note.done ? 'line-through opacity-50' : 'text-zinc-100'}">${note.text}</p>
+                            ${note.deadline && !note.done ? `<div id="${timerId}" class="text-[10px] mt-3 font-mono"></div>` : ''}
+                            ${note.done ? `<div class="text-[10px] mt-2 text-emerald-500 font-bold uppercase">✓ Concluído</div>` : ''}
                         </div>
                         <div class="flex gap-2">
-                            <button onclick="toggleNote('${note.id}', ${note.done})" class="p-2 rounded-xl ${note.done ? 'bg-emerald-500 text-white' : 'bg-zinc-800 text-zinc-400'} transition-all">
-                                <i data-lucide="${note.done ? 'check-circle-2' : 'circle'}" class="w-5"></i>
+                            <button onclick="toggleNote('${note.id}', ${note.done})" class="p-2 rounded-xl ${note.done ? 'bg-emerald-600' : 'bg-zinc-800'} text-white">
+                                <i data-lucide="${note.done ? 'check-circle' : 'circle'}" class="w-5"></i>
                             </button>
-                            <button onclick="deleteNote('${note.id}')" class="p-2 text-zinc-600 hover:text-red-500 transition-colors">
+                            <button onclick="deleteNote('${note.id}')" class="p-2 text-zinc-600 hover:text-red-500">
                                 <i data-lucide="trash-2" class="w-5"></i>
                             </button>
                         </div>
                     </div>
                 `;
                 list.appendChild(card);
-                if(note.deadline && !note.done) startNoteTimer(note);
+                if(note.deadline && !note.done) startTimer(note, timerId, "⚠️ ATRASADO", true);
             });
             lucide.createIcons();
         }
 
-        function startNoteTimer(note) {
-            const el = document.getElementById(`note-timer-${note.id}`);
-            const updateNoteTimer = () => {
+        // --- CRONÔMETRO UNIVERSAL (Dias, Horas, Min, Seg) ---
+        function startTimer(item, elementId, expiredText, isNote = false) {
+            const target = item.expiry || item.deadline;
+            const updateUI = () => {
+                const el = document.getElementById(elementId);
                 if(!el) return;
-                const diff = note.deadline - Date.now();
-                
+                const diff = target - Date.now();
+
                 if(diff <= 0) {
-                    el.innerText = "⚠️ ATRASADO";
-                    el.className = "text-[10px] font-black text-red-500 mt-2 animate-pulse";
+                    el.innerText = expiredText;
+                    el.className = isNote ? "text-[10px] font-black text-red-500 mt-3 animate-pulse" : "text-xs font-bold text-red-500 mt-1";
                     return;
                 }
 
                 const d = Math.floor(diff / 86400000);
-                const h = Math.floor((diff / 3600000) % 24);
-                const m = Math.floor((diff / 60000) % 60);
-                const s = Math.floor((diff / 1000) % 60);
-                
+                const h = Math.floor((diff % 86400000) / 3600000);
+                const m = Math.floor((diff % 3600000) / 60000);
+                const s = Math.floor((diff % 60000) / 1000);
+
                 el.innerText = `Faltam: ${d}d ${h}h ${m}m ${s}s`;
-                el.className = "text-[10px] font-mono text-purple-400 mt-2";
+                if(isNote) el.className = "text-[10px] font-mono text-purple-400 bg-purple-500/10 py-1 px-2 rounded-lg inline-block mt-3 border border-purple-500/20";
             };
-            updateNoteTimer();
-            const interval = setInterval(() => {
-                if(!document.getElementById(`note-timer-${note.id}`)) clearInterval(interval);
-                updateNoteTimer();
-            }, 1000);
+            updateUI();
+            setInterval(updateUI, 1000);
         }
 
-        // Init icons
         lucide.createIcons();
     </script>
 </body>
