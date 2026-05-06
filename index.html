@@ -3,65 +3,115 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Meu Controle</title>
+    <title>Gestor de Assinaturas e Rollover</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        body { background-color: #09090b; color: #f4f4f5; }
-        .tab-active { background-color: #27272a; opacity: 1; }
+        body { background-color: #09090b; color: #f4f4f5; -webkit-tap-highlight-color: transparent; }
+        .tab-active { background-color: #27272a; border-bottom: 2px solid #3b82f6; }
+        .selected-acc { border: 2px solid #10b981 !important; background-color: #064e3b44 !important; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        input[type="number"]::-webkit-inner-spin-button { display: none; }
     </style>
 </head>
-<body class="p-4 font-sans">
-    <div class="max-w-md mx-auto">
+<body class="p-4 font-sans select-none">
+    <div class="max-w-md mx-auto mb-10">
         
-        <!-- Navegação de Abas -->
-        <div class="flex gap-2 mb-6 bg-zinc-900 p-1 rounded-xl">
-            <button onclick="switchTab('subs')" id="btn-subs" class="flex-1 py-2 rounded-lg flex items-center justify-center gap-2 transition tab-active">
+        <!-- HEADER / TABS -->
+        <div class="flex gap-2 mb-6 bg-zinc-900 p-1 rounded-2xl shadow-lg border border-zinc-800">
+            <button onclick="switchTab('subs')" id="btn-subs" class="flex-1 py-3 rounded-xl flex items-center justify-center gap-2 transition-all tab-active">
                 <i data-lucide="clock" class="w-4"></i> Assinaturas
             </button>
-            <button onclick="switchTab('bet')" id="btn-bet" class="flex-1 py-2 rounded-lg flex items-center justify-center gap-2 transition opacity-50">
-                <i data-lucide="circle-dollar-sign" class="w-4"></i> Rollover
+            <button onclick="switchTab('bet')" id="btn-bet" class="flex-1 py-3 rounded-xl flex items-center justify-center gap-2 transition-all opacity-50">
+                <i data-lucide="target" class="w-4"></i> Rollover
             </button>
         </div>
 
-        <!-- ABA ASSINATURAS -->
+        <!-- ABA 1: ASSINATURAS -->
         <div id="tab-subs" class="space-y-4">
-            <div class="bg-zinc-900 p-4 rounded-2xl border border-zinc-800 shadow-xl">
-                <h2 class="text-xs font-bold uppercase mb-4 opacity-70 tracking-widest">Nova Assinatura</h2>
-                <input id="sub-name" placeholder="Nome do produto" class="w-full bg-zinc-800 p-3 rounded-xl mb-2 outline-none focus:ring-2 ring-blue-500 transition-all">
+            <div class="bg-zinc-900 p-5 rounded-3xl border border-zinc-800 shadow-xl">
+                <h2 class="text-xs font-bold uppercase mb-4 opacity-50 tracking-tighter">Novo Registro</h2>
+                <input id="sub-name" placeholder="Ex: PC Gamer Nuvem" class="w-full bg-zinc-800 p-4 rounded-2xl mb-2 outline-none focus:ring-2 ring-blue-500 transition-all">
                 <div class="flex gap-2">
-                    <input id="sub-days" type="number" placeholder="Dias" class="flex-1 bg-zinc-800 p-3 rounded-xl outline-none focus:ring-2 ring-blue-500 transition-all">
-                    <button onclick="addSubscription()" class="bg-blue-600 hover:bg-blue-500 p-3 rounded-xl transition-colors shadow-lg shadow-blue-900/20">
+                    <input id="sub-days" type="number" placeholder="Dias" class="flex-1 bg-zinc-800 p-4 rounded-2xl outline-none focus:ring-2 ring-blue-500">
+                    <button onclick="addSubscription()" class="bg-blue-600 hover:bg-blue-500 p-4 rounded-2xl transition-all active:scale-95">
                         <i data-lucide="plus"></i>
                     </button>
                 </div>
             </div>
-            <div id="subs-list" class="space-y-2"></div>
+            <div id="subs-list" class="space-y-3"></div>
         </div>
 
-        <!-- ABA ROLLOVER -->
-        <div id="tab-bet" class="hidden bg-zinc-900 p-6 rounded-3xl border border-zinc-800 text-center shadow-xl">
-            <h2 class="text-zinc-500 uppercase text-xs font-bold mb-2 tracking-widest">Total Acumulado</h2>
-            <div id="rollover-display" class="text-5xl font-black mb-8 text-emerald-400 drop-shadow-md">R$ 0.00</div>
+        <!-- ABA 2: ROLLOVER (SOLO E CONTAS) -->
+        <div id="tab-bet" class="hidden space-y-4">
             
-            <input id="bet-value" type="number" placeholder="Valor da aposta" class="w-full bg-zinc-800 p-4 rounded-2xl mb-4 text-center text-2xl font-bold outline-none border-2 border-transparent focus:border-emerald-500 transition-all">
-            
-            <button onclick="addRollover()" class="w-full bg-emerald-600 hover:bg-emerald-500 py-4 rounded-2xl font-bold text-lg shadow-lg shadow-emerald-900/30 active:scale-95 transition-transform">
-                ADICIONAR AO ROLLOVER
-            </button>
-            
-            <button onclick="resetRollover()" class="mt-8 opacity-30 hover:opacity-100 transition-opacity text-xs flex items-center gap-2 mx-auto">
-                <i data-lucide="rotate-ccw" class="w-3"></i> ZERAR CONTADOR
-            </button>
+            <!-- Criação de Conta -->
+            <div class="bg-zinc-900 p-5 rounded-3xl border border-zinc-800 shadow-xl">
+                <h2 class="text-xs font-bold uppercase mb-4 opacity-50 tracking-tighter">Gerenciar Contas</h2>
+                <div class="space-y-2">
+                    <input id="acc-name" placeholder="Nome da Conta" class="w-full bg-zinc-800 p-4 rounded-2xl outline-none focus:ring-2 ring-emerald-500">
+                    <div class="flex gap-2">
+                        <input id="acc-goal" type="number" placeholder="Valor Depósito (Meta)" class="flex-1 bg-zinc-800 p-4 rounded-2xl outline-none focus:ring-2 ring-emerald-500">
+                        <button onclick="addAccount()" class="bg-emerald-600 hover:bg-emerald-500 p-4 rounded-2xl transition-all active:scale-95">
+                            <i data-lucide="user-plus"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lista de Contas Horizontal -->
+            <div id="acc-list" class="flex gap-3 overflow-x-auto pb-4 no-scrollbar pt-2">
+                <!-- Cards de conta entram aqui -->
+            </div>
+
+            <!-- Painel de Operação -->
+            <div id="action-panel" class="bg-zinc-900 p-6 rounded-[2.5rem] border border-zinc-800 text-center shadow-2xl relative overflow-hidden">
+                <div id="panel-empty" class="py-10 opacity-30 italic text-sm">
+                    Selecione uma conta acima ou use o modo Solo
+                </div>
+                
+                <div id="panel-content" class="hidden">
+                    <div class="mb-4">
+                        <h3 id="active-acc-name" class="text-emerald-500 font-bold uppercase text-xs tracking-widest"></h3>
+                        <div id="rollover-val" class="text-5xl font-black mt-2 text-zinc-100">R$ 0.00</div>
+                        <div id="goal-info" class="text-sm opacity-40 mt-1 font-medium"></div>
+                    </div>
+
+                    <!-- Barra de Progresso -->
+                    <div class="w-full bg-zinc-800 h-4 rounded-full mb-6 p-1 border border-zinc-700">
+                        <div id="progress-bar" class="h-full bg-emerald-500 rounded-full transition-all duration-700" style="width: 0%"></div>
+                    </div>
+
+                    <div id="status-badge" class="hidden mb-6 p-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/50 text-emerald-400 font-black text-sm animate-pulse">
+                        🎯 ROLLOVER BATIDO!
+                    </div>
+
+                    <div class="relative group">
+                        <input id="bet-input" type="number" placeholder="Valor da entrada" class="w-full bg-zinc-800 p-5 rounded-2xl mb-4 text-center text-3xl font-bold outline-none border-2 border-transparent focus:border-emerald-500 transition-all">
+                    </div>
+                    
+                    <button onclick="addToRollover()" class="w-full bg-emerald-600 hover:bg-emerald-500 py-5 rounded-2xl font-black text-xl shadow-lg shadow-emerald-900/20 active:scale-[0.98] transition-all">
+                        ADICIONAR
+                    </button>
+
+                    <div class="flex gap-2 mt-6">
+                        <button onclick="addMoreGoal()" class="flex-1 bg-zinc-800 hover:bg-zinc-700 py-3 rounded-xl text-[10px] font-bold uppercase opacity-60">Novo Depósito</button>
+                        <button onclick="deleteAccount()" class="flex-1 bg-red-900/10 hover:bg-red-900/20 py-3 rounded-xl text-[10px] font-bold uppercase text-red-500">Excluir Conta</button>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
     <script>
-        // Inicialização
+        // Inicialização Global
         lucide.createIcons();
         let subs = JSON.parse(localStorage.getItem('my_subs') || '[]');
-        let rollover = parseFloat(localStorage.getItem('my_rollover') || '0');
+        let accounts = JSON.parse(localStorage.getItem('my_accs') || '[]');
+        let selectedAccId = null;
 
+        // Gerenciamento de Abas
         function switchTab(tab) {
             document.getElementById('tab-subs').classList.toggle('hidden', tab !== 'subs');
             document.getElementById('tab-bet').classList.toggle('hidden', tab !== 'bet');
@@ -69,14 +119,115 @@
             document.getElementById('btn-subs').classList.toggle('opacity-50', tab !== 'subs');
             document.getElementById('btn-bet').classList.toggle('tab-active', tab === 'bet');
             document.getElementById('btn-bet').classList.toggle('opacity-50', tab !== 'bet');
+            lucide.createIcons();
         }
 
-        // --- Lógica de Assinaturas ---
+        // --- SISTEMA DE CONTAS ---
+        function addAccount() {
+            const nameInput = document.getElementById('acc-name');
+            const goalInput = document.getElementById('acc-goal');
+            const name = nameInput.value.trim();
+            const goal = parseFloat(goalInput.value);
+
+            if(!name || isNaN(goal)) {
+                alert("Preencha o nome e o valor do depósito corretamente.");
+                return;
+            }
+            
+            const newAcc = { id: Date.now(), name: name, current: 0, goal: goal };
+            accounts.push(newAcc);
+            save();
+            renderAccounts();
+            nameInput.value = '';
+            goalInput.value = '';
+        }
+
+        function renderAccounts() {
+            const list = document.getElementById('acc-list');
+            list.innerHTML = '';
+            
+            // Adiciona a opção "SOLO" por padrão se quiser, mas aqui focamos na sua lista
+            accounts.forEach(acc => {
+                const isSelected = selectedAccId === acc.id;
+                const isDone = acc.current >= acc.goal;
+                
+                const card = document.createElement('div');
+                card.onclick = () => selectAccount(acc.id);
+                card.className = `min-w-[130px] p-4 rounded-2xl border-2 border-zinc-800 bg-zinc-900 cursor-pointer transition-all ${isSelected ? 'selected-acc shadow-lg shadow-emerald-900/10' : ''}`;
+                card.innerHTML = `
+                    <div class="text-[10px] font-bold uppercase opacity-40 truncate mb-1">${acc.name}</div>
+                    <div class="text-lg font-black ${isDone ? 'text-emerald-400' : 'text-zinc-200'}">
+                        ${isDone ? 'BATIDO' : 'R$ '+acc.current.toFixed(0)}
+                    </div>
+                    <div class="text-[9px] opacity-30">Meta: R$ ${acc.goal}</div>
+                `;
+                list.appendChild(card);
+            });
+        }
+
+        function selectAccount(id) {
+            selectedAccId = id;
+            document.getElementById('panel-empty').classList.add('hidden');
+            document.getElementById('panel-content').classList.remove('hidden');
+            updatePanel();
+            renderAccounts();
+        }
+
+        function updatePanel() {
+            const acc = accounts.find(a => a.id === selectedAccId);
+            if(!acc) return;
+            
+            const progress = Math.min((acc.current / acc.goal) * 100, 100);
+            document.getElementById('active-acc-name').innerText = acc.name;
+            document.getElementById('rollover-val').innerText = `R$ ${acc.current.toFixed(2)}`;
+            document.getElementById('goal-info').innerText = `Depósito/Meta: R$ ${acc.goal.toFixed(2)}`;
+            document.getElementById('progress-bar').style.width = `${progress}%`;
+            
+            const isDone = acc.current >= acc.goal;
+            document.getElementById('status-badge').classList.toggle('hidden', !isDone);
+            document.getElementById('progress-bar').className = `h-full rounded-full transition-all duration-700 ${isDone ? 'bg-emerald-400' : 'bg-emerald-600'}`;
+        }
+
+        function addToRollover() {
+            const input = document.getElementById('bet-input');
+            const val = parseFloat(input.value || 0);
+            if(val <= 0 || !selectedAccId) return;
+            
+            const acc = accounts.find(a => a.id === selectedAccId);
+            acc.current += val;
+            save();
+            updatePanel();
+            renderAccounts();
+            // Valor não é resetado conforme pedido anterior
+        }
+
+        function addMoreGoal() {
+            const extra = parseFloat(prompt("Qual o valor do novo depósito?"));
+            if(isNaN(extra) || extra <= 0) return;
+            const acc = accounts.find(a => a.id === selectedAccId);
+            acc.goal += extra;
+            save();
+            updatePanel();
+            renderAccounts();
+        }
+
+        function deleteAccount() {
+            if(confirm("Deseja realmente excluir esta conta e todo o progresso?")) {
+                accounts = accounts.filter(a => a.id !== selectedAccId);
+                selectedAccId = null;
+                document.getElementById('panel-content').classList.add('hidden');
+                document.getElementById('panel-empty').classList.remove('hidden');
+                save();
+                renderAccounts();
+            }
+        }
+
+        // --- SISTEMA DE ASSINATURAS ---
         function addSubscription() {
             const name = document.getElementById('sub-name').value;
             const days = document.getElementById('sub-days').value;
             if(!name || !days) return;
-            
+
             const expiry = Date.now() + (parseInt(days) * 24 * 60 * 60 * 1000);
             subs.push({ id: Date.now(), name, expiry });
             save();
@@ -90,81 +241,60 @@
             list.innerHTML = '';
             subs.forEach(sub => {
                 const card = document.createElement('div');
-                card.className = "bg-zinc-900 p-4 rounded-2xl border border-zinc-800 flex justify-between items-center animate-in fade-in slide-in-from-bottom-2 duration-300";
+                card.className = "bg-zinc-900 p-5 rounded-3xl border border-zinc-800 flex justify-between items-center shadow-lg";
                 card.innerHTML = `
-                    <div>
-                        <h3 class="font-bold text-zinc-300">${sub.name}</h3>
-                        <p class="text-sm font-mono text-blue-400" id="timer-${sub.id}">Calculando...</p>
+                    <div class="flex-1">
+                        <h3 class="font-bold text-zinc-200 text-sm">${sub.name}</h3>
+                        <p class="text-xs font-mono text-blue-400 mt-1" id="timer-${sub.id}">Calculando...</p>
                     </div>
-                    <button onclick="removeSub(${sub.id})" class="text-zinc-600 hover:text-red-400 p-2 transition-colors">
+                    <button onclick="removeSub(${sub.id})" class="p-2 text-zinc-600 hover:text-red-500 transition-colors">
                         <i data-lucide="trash-2" class="w-5"></i>
                     </button>
                 `;
                 list.appendChild(card);
-                startTimer(sub);
+                updateTimer(sub);
             });
             lucide.createIcons();
         }
 
-        function startTimer(sub) {
+        function updateTimer(sub) {
             const el = document.getElementById(`timer-${sub.id}`);
-            if(!el) return;
-            const update = () => {
+            const timer = setInterval(() => {
+                if(!el) { clearInterval(timer); return; }
                 const diff = sub.expiry - Date.now();
-                if(diff <= 0) { el.innerText = "EXPIRADO"; el.classList.replace('text-blue-400', 'text-red-500'); return; }
+                if(diff <= 0) {
+                    el.innerText = "ASSINATURA EXPIRADA";
+                    el.className = "text-xs font-bold text-red-500 mt-1";
+                    clearInterval(timer);
+                    return;
+                }
                 const d = Math.floor(diff / 86400000);
                 const h = Math.floor((diff / 3600000) % 24);
                 const m = Math.floor((diff / 60000) % 60);
                 const s = Math.floor((diff / 1000) % 60);
-                el.innerText = `${d}d ${h}h ${m}m ${s}s`;
-            };
-            const timer = setInterval(() => {
-                if(!document.getElementById(`timer-${sub.id}`)) { clearInterval(timer); return; }
-                update();
+                el.innerText = `${d}d ${h}h ${m}m ${s}s restante`;
             }, 1000);
-            update();
         }
 
         function removeSub(id) {
-            subs = subs.filter(s => s.id !== id);
-            save();
-            renderSubs();
-        }
-
-        // --- Lógica de Rollover (Atualizada conforme seu pedido) ---
-        function addRollover() {
-            const input = document.getElementById('bet-value');
-            const val = parseFloat(input.value || 0);
-            if (val === 0) return;
-
-            rollover += val;
-            save();
-            updateRolloverDisplay();
-            
-            // Note que removi a linha que limpava o input.value
-            // O valor continuará lá para você clicar várias vezes.
-        }
-
-        function resetRollover() { 
-            if(confirm('Zerar todo o progresso do Rollover?')) {
-                rollover = 0; 
-                save(); 
-                updateRolloverDisplay(); 
+            if(confirm("Remover esta assinatura?")) {
+                subs = subs.filter(s => s.id !== id);
+                save();
+                renderSubs();
             }
-        }
-
-        function updateRolloverDisplay() { 
-            document.getElementById('rollover-display').innerText = `R$ ${rollover.toFixed(2)}`; 
         }
 
         function save() {
             localStorage.setItem('my_subs', JSON.stringify(subs));
-            localStorage.setItem('my_rollover', rollover.toString());
+            localStorage.setItem('my_accs', JSON.stringify(accounts));
         }
 
-        // Inicializar na carga da página
-        renderSubs();
-        updateRolloverDisplay();
+        // Boot
+        window.onload = () => {
+            renderAccounts();
+            renderSubs();
+            lucide.createIcons();
+        };
     </script>
 </body>
 </html>
