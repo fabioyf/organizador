@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meu Controle</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body { background-color: #09090b; color: #f4f4f5; }
+        .tab-active { background-color: #27272a; opacity: 1; }
+    </style>
+</head>
+<body class="p-4 font-sans">
+    <div class="max-w-md mx-auto">
+        <!-- Navegação -->
+        <div class="flex gap-2 mb-6 bg-zinc-900 p-1 rounded-xl">
+            <button onclick="switchTab('subs')" id="btn-subs" class="flex-1 py-2 rounded-lg flex items-center justify-center gap-2 transition tab-active">
+                <i data-lucide="clock" class="w-4"></i> Assinaturas
+            </button>
+            <button onclick="switchTab('bet')" id="btn-bet" class="flex-1 py-2 rounded-lg flex items-center justify-center gap-2 transition opacity-50">
+                <i data-lucide="circle-dollar-sign" class="w-4"></i> Rollover
+            </button>
+        </div>
+
+        <!-- ABA ASSINATURAS -->
+        <div id="tab-subs" class="space-y-4">
+            <div class="bg-zinc-900 p-4 rounded-2xl border border-zinc-800">
+                <h2 class="text-xs font-bold uppercase mb-4 opacity-70">Nova Assinatura</h2>
+                <input id="sub-name" placeholder="Nome (ex: PC Gamer)" class="w-full bg-zinc-800 p-3 rounded-xl mb-2 outline-none focus:ring-2 ring-blue-500">
+                <div class="flex gap-2">
+                    <input id="sub-days" type="number" placeholder="Dias" class="flex-1 bg-zinc-800 p-3 rounded-xl outline-none focus:ring-2 ring-blue-500">
+                    <button onclick="addSubscription()" class="bg-blue-600 p-3 rounded-xl"><i data-lucide="plus"></i></button>
+                </div>
+            </div>
+            <div id="subs-list" class="space-y-2"></div>
+        </div>
+
+        <!-- ABA ROLLOVER -->
+        <div id="tab-bet" class="hidden bg-zinc-900 p-6 rounded-3xl border border-zinc-800 text-center">
+            <h2 class="text-zinc-500 uppercase text-xs font-bold mb-2">Total acumulado</h2>
+            <div id="rollover-display" class="text-5xl font-black mb-8 text-emerald-400">R$ 0.00</div>
+            <input id="bet-value" type="number" placeholder="Valor" class="w-full bg-zinc-800 p-4 rounded-2xl mb-4 text-center text-xl outline-none">
+            <button onclick="addRollover()" class="w-full bg-emerald-600 py-4 rounded-2xl font-bold text-lg">ADICIONAR</button>
+            <button onclick="resetRollover()" class="mt-8 opacity-30 text-xs flex items-center gap-2 mx-auto">
+                <i data-lucide="rotate-ccw" class="w-3"></i> RESETAR
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Inicializar Ícones
+        lucide.createIcons();
+
+        let subs = JSON.parse(localStorage.getItem('my_subs') || '[]');
+        let rollover = parseFloat(localStorage.getItem('my_rollover') || '0');
+
+        function switchTab(tab) {
+            document.getElementById('tab-subs').classList.toggle('hidden', tab !== 'subs');
+            document.getElementById('tab-bet').classList.toggle('hidden', tab !== 'bet');
+            document.getElementById('btn-subs').classList.toggle('tab-active', tab === 'subs');
+            document.getElementById('btn-subs').classList.toggle('opacity-50', tab !== 'subs');
+            document.getElementById('btn-bet').classList.toggle('tab-active', tab === 'bet');
+            document.getElementById('btn-bet').classList.toggle('opacity-50', tab !== 'bet');
+        }
+
+        function addSubscription() {
+            const name = document.getElementById('sub-name').value;
+            const days = document.getElementById('sub-days').value;
+            if(!name || !days) return;
+            
+            const expiry = Date.now() + (parseInt(days) * 24 * 60 * 60 * 1000);
+            subs.push({ id: Date.now(), name, expiry });
+            save();
+            renderSubs();
+            document.getElementById('sub-name').value = '';
+            document.getElementById('sub-days').value = '';
+        }
+
+        function renderSubs() {
+            const list = document.getElementById('subs-list');
+            list.innerHTML = '';
+            subs.forEach(sub => {
+                const card = document.createElement('div');
+                card.className = "bg-zinc-900 p-4 rounded-2xl border border-zinc-800 flex justify-between items-center";
+                card.innerHTML = `
+                    <div>
+                        <h3 class="font-bold">${sub.name}</h3>
+                        <p class="text-sm font-mono text-blue-400" id="timer-${sub.id}">Calculando...</p>
+                    </div>
+                    <button onclick="removeSub(${sub.id})" class="text-zinc-600 hover:text-red-500">
+                        <i data-lucide="trash-2" class="w-5"></i>
+                    </button>
+                `;
+                list.appendChild(card);
+                startTimer(sub);
+            });
+            lucide.createIcons();
+        }
+
+        function startTimer(sub) {
+            const el = document.getElementById(`timer-${sub.id}`);
+            const update = () => {
+                const diff = sub.expiry - Date.now();
+                if(diff <= 0) { el.innerText = "EXPIRADO"; return; }
+                const d = Math.floor(diff / 86400000);
+                const h = Math.floor((diff / 3600000) % 24);
+                const m = Math.floor((diff / 60000) % 60);
+                const s = Math.floor((diff / 1000) % 60);
+                el.innerText = `${d}d ${h}h ${m}m ${s}s`;
+            };
+            setInterval(update, 1000);
+            update();
+        }
+
+        function removeSub(id) {
+            subs = subs.filter(s => s.id !== id);
+            save();
+            renderSubs();
+        }
+
+        function addRollover() {
+            const val = parseFloat(document.getElementById('bet-value').value || 0);
+            rollover += val;
+            save();
+            updateRolloverDisplay();
+            document.getElementById('bet-value').value = '';
+        }
+
+        function resetRollover() { rollover = 0; save(); updateRolloverDisplay(); }
+        function updateRolloverDisplay() { document.getElementById('rollover-display').innerText = `R$ ${rollover.toFixed(2)}`; }
+        function save() {
+            localStorage.setItem('my_subs', JSON.stringify(subs));
+            localStorage.setItem('my_rollover', rollover.toString());
+        }
+
+        renderSubs();
+        updateRolloverDisplay();
+    </script>
+</body>
+</html>
