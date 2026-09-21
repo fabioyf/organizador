@@ -1,106 +1,544 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
+    <script src="https://cdn.tailwindcss.com"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Organizador Pro</title>
-    <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        body { background-color: #09090b; color: #f4f4f5; -webkit-tap-highlight-color: transparent; }
-        .tab-active { background-color: #27272a; border-bottom: 2px solid #3b82f6; }
-        .selected-acc { border: 2px solid #10b981 !important; background-color: #064e3b44 !important; }
-        .note-done { border: 2px solid #10b981 !important; background-color: #064e3b22 !important; }
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        input[type="number"]::-webkit-inner-spin-button { display: none; }
-        input[type="datetime-local"]::-webkit-calendar-picker-indicator { filter: invert(1); }
-        
-        /* Estilo para a tag de tempo */
+        :root {
+            --bg: #f6f7f9;
+            --surface: #ffffff;
+            --surface-soft: #f9fafb;
+            --border: #e7e9ee;
+            --text: #17181c;
+            --muted: #8a8f98;
+            --blue: #2563eb;
+            --green: #16a34a;
+            --red: #dc2626;
+            --purple: #7c3aed;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--text);
+            -webkit-tap-highlight-color: transparent;
+            font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        }
+
+        button, input, textarea { font: inherit; }
+
+        .app-shell {
+            max-width: 520px;
+            margin: 0 auto;
+            padding: 22px 16px 48px;
+        }
+
+        .topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 18px;
+        }
+
+        .brand-title {
+            font-size: 19px;
+            font-weight: 750;
+            letter-spacing: -0.04em;
+        }
+
+        .brand-subtitle {
+            color: var(--muted);
+            font-size: 11px;
+            margin-top: 2px;
+        }
+
+        .tabs {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 5px;
+            padding: 4px;
+            margin-bottom: 18px;
+            background: #eceef2;
+            border-radius: 14px;
+        }
+
+        .tab-button {
+            border: 0;
+            background: transparent;
+            color: #777c85;
+            padding: 10px 6px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: 650;
+            cursor: pointer;
+            transition: .18s ease;
+        }
+
+        .tab-button i { width: 14px; height: 14px; }
+
+        .tab-button.tab-active {
+            background: var(--surface);
+            color: var(--text);
+            box-shadow: 0 1px 4px rgba(0,0,0,.07);
+        }
+
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            box-shadow: 0 8px 28px rgba(20, 25, 35, .045);
+        }
+
+        .form-card {
+            padding: 18px;
+        }
+
+        .section-label {
+            color: var(--muted);
+            font-size: 10px;
+            font-weight: 750;
+            text-transform: uppercase;
+            letter-spacing: .08em;
+            margin-bottom: 12px;
+        }
+
+        .field {
+            width: 100%;
+            border: 1px solid var(--border);
+            background: var(--surface-soft);
+            color: var(--text);
+            border-radius: 13px;
+            padding: 12px 13px;
+            outline: none;
+            transition: .18s ease;
+        }
+
+        .field::placeholder { color: #a5a9b0; }
+
+        .field:focus {
+            background: #fff;
+            border-color: #b9c6e6;
+            box-shadow: 0 0 0 3px rgba(37,99,235,.07);
+        }
+
+        .row { display: flex; gap: 8px; }
+
+        .primary-btn {
+            border: 0;
+            color: #fff;
+            border-radius: 13px;
+            min-width: 48px;
+            cursor: pointer;
+            transition: transform .15s ease, opacity .15s ease;
+        }
+
+        .primary-btn:hover { opacity: .92; }
+        .primary-btn:active { transform: scale(.97); }
+
+        .blue-btn { background: var(--blue); }
+        .green-btn { background: var(--green); }
+        .purple-btn { background: var(--purple); }
+
+        .list-stack {
+            display: grid;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .list-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 14px;
+        }
+
+        .empty-state {
+            padding: 34px 18px;
+            text-align: center;
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .account-list {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding: 2px 1px 10px;
+            scrollbar-width: none;
+        }
+
+        .account-list::-webkit-scrollbar { display: none; }
+
+        .account-card {
+            min-width: 125px;
+            padding: 13px;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            border-radius: 15px;
+            cursor: pointer;
+            transition: .18s ease;
+        }
+
+        .account-card.selected-acc {
+            border-color: #9cc5aa !important;
+            background: #f2faf4 !important;
+        }
+
+        .account-name {
+            color: var(--muted);
+            font-size: 10px;
+            font-weight: 700;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .account-value {
+            margin-top: 5px;
+            font-size: 17px;
+            font-weight: 800;
+            letter-spacing: -.03em;
+        }
+
+        .rollover-panel {
+            padding: 22px;
+            text-align: center;
+        }
+
+        .active-name {
+            color: var(--green);
+            font-size: 10px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: .11em;
+        }
+
+        .rollover-value {
+            margin-top: 5px;
+            font-size: 38px;
+            line-height: 1;
+            font-weight: 850;
+            letter-spacing: -.06em;
+        }
+
+        .goal-text {
+            margin-top: 7px;
+            color: var(--muted);
+            font-size: 11px;
+        }
+
+        .progress-track {
+            height: 7px;
+            margin: 18px 0 18px;
+            background: #eef0f3;
+            border-radius: 999px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--green);
+            border-radius: inherit;
+            transition: width .45s ease;
+        }
+
+        .status {
+            padding: 9px 12px;
+            border-radius: 11px;
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            color: #15803d;
+            font-size: 11px;
+            font-weight: 800;
+            margin-bottom: 14px;
+        }
+
+        .bet-input {
+            width: 100%;
+            border: 1px solid var(--border);
+            background: var(--surface-soft);
+            border-radius: 13px;
+            padding: 14px;
+            text-align: center;
+            font-size: 22px;
+            font-weight: 750;
+            outline: none;
+        }
+
+        .action-main {
+            width: 100%;
+            border: 0;
+            margin-top: 9px;
+            padding: 13px;
+            border-radius: 13px;
+            color: white;
+            background: var(--green);
+            font-weight: 750;
+            cursor: pointer;
+        }
+
+        .secondary-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .secondary-btn {
+            border: 1px solid var(--border);
+            background: #fff;
+            color: #6d727b;
+            padding: 10px;
+            border-radius: 11px;
+            font-size: 10px;
+            font-weight: 750;
+            cursor: pointer;
+        }
+
+        .delete-btn {
+            color: var(--red);
+            background: #fffafa;
+            border-color: #f2dada;
+        }
+
+        .tips {
+            margin-top: 14px;
+            padding: 12px 13px;
+            text-align: left;
+            border-radius: 13px;
+            background: #fafafa;
+            border: 1px solid #eeeeef;
+        }
+
+        .tips-title {
+            font-size: 9px;
+            font-weight: 800;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: .08em;
+            margin-bottom: 5px;
+        }
+
+        .tips li {
+            color: #8a8f98;
+            font-size: 10px;
+            line-height: 1.55;
+        }
+
+        .note-done {
+            border-color: #b7e1c1 !important;
+            background: #f4fbf5 !important;
+        }
+
         .timer-badge {
             display: inline-flex;
             align-items: center;
             gap: 4px;
-            padding: 4px 8px;
+            margin-top: 7px;
+            padding: 4px 7px;
             border-radius: 8px;
-            font-family: monospace;
-            font-size: 11px;
-            margin-top: 8px;
-            border: 1px solid rgba(168, 85, 247, 0.2);
-            background: rgba(168, 85, 247, 0.1);
-            color: #a855f7;
+            background: #f6f3ff;
+            color: #7c3aed;
+            font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+            font-size: 10px;
+            border: 1px solid #e8defd;
         }
+
         .timer-expired {
-            border-color: rgba(239, 68, 68, 0.3);
-            background: rgba(239, 68, 68, 0.1);
-            color: #ef4444;
-            font-weight: bold;
+            background: #fff5f5;
+            color: var(--red);
+            border-color: #f5d1d1;
+            font-weight: 750;
         }
+
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { scrollbar-width: none; }
+        input[type="number"]::-webkit-inner-spin-button { display: none; }
+        input[type="datetime-local"]::-webkit-calendar-picker-indicator { opacity: .55; }
+
+        /* Compatibilidade com classes antigas */
+        .bg-zinc-900 { background: var(--surface) !important; }
+        .bg-zinc-800 { background: var(--surface-soft) !important; }
+        .border-zinc-800, .border-zinc-700 { border-color: var(--border) !important; }
+        .text-zinc-100, .text-zinc-200, .text-zinc-300 { color: var(--text) !important; }
+        .text-zinc-400, .opacity-40, .opacity-50, .opacity-60 { opacity: 1; color: var(--muted) !important; }
+        .bg-emerald-600, .bg-emerald-500 { background: var(--green) !important; }
+        .bg-blue-600 { background: var(--blue) !important; }
+        .bg-purple-600 { background: var(--purple) !important; }
+        .text-emerald-500, .text-emerald-400 { color: var(--green) !important; }
+        .text-blue-400 { color: var(--blue) !important; }
+        .text-purple-400 { color: var(--purple) !important; }
+        .text-red-500 { color: var(--red) !important; }
+        .bg-red-900\/10 { background: #fffafa !important; }
+
+        /* Tema escuro */
+        body.theme-dark {
+            --bg: #0b0c0f;
+            --surface: #121419;
+            --surface-soft: #181b21;
+            --border: #272b33;
+            --text: #f4f5f7;
+            --muted: #9298a3;
+        }
+
+        body.theme-dark .tabs { background: #181b21; }
+        body.theme-dark .tab-button.tab-active {
+            background: #242830;
+            color: #fff;
+        }
+        body.theme-dark .field,
+        body.theme-dark .bet-input {
+            background: #181b21;
+            color: var(--text);
+            border-color: var(--border);
+        }
+        body.theme-dark .field:focus,
+        body.theme-dark .bet-input:focus {
+            background: #1d2027;
+        }
+        body.theme-dark .account-card,
+        body.theme-dark .list-card,
+        body.theme-dark .secondary-btn {
+            background: var(--surface);
+            border-color: var(--border);
+            color: var(--text);
+        }
+        body.theme-dark .account-card.selected-acc {
+            background: #102218 !important;
+            border-color: #3b7b4c !important;
+        }
+        body.theme-dark .progress-track { background: #252a31; }
+        body.theme-dark .tips {
+            background: #181b21;
+            border-color: var(--border);
+        }
+        body.theme-dark .delete-btn {
+            background: #211517;
+            border-color: #452326;
+        }
+        body.theme-dark .status {
+            background: #102218;
+            border-color: #285d38;
+        }
+        body.theme-dark .timer-badge {
+            background: #1d1830;
+            border-color: #352a57;
+        }
+        body.theme-dark .timer-expired {
+            background: #251719;
+            border-color: #4b292c;
+        }
+        body.theme-dark .text-zinc-100,
+        body.theme-dark .text-zinc-200,
+        body.theme-dark .text-zinc-300 {
+            color: var(--text) !important;
+        }
+
+        .theme-toggle {
+            width: 36px;
+            height: 36px;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            color: var(--text);
+            border-radius: 11px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: .18s ease;
+        }
+        .theme-toggle:hover { transform: translateY(-1px); }
+        .theme-toggle:active { transform: scale(.95); }
+
     </style>
 </head>
-<body class="p-4 font-sans select-none">
-    <div class="max-w-md mx-auto mb-10">
+<body class="select-none">
+    <div class="app-shell">
         
         <!-- MENU TABS -->
-        <div class="flex gap-2 mb-6 bg-zinc-900 p-1 rounded-2xl shadow-lg border border-zinc-800">
-            <button onclick="switchTab('subs')" id="btn-subs" class="flex-1 py-3 rounded-xl text-xs flex items-center justify-center gap-2 transition-all tab-active">
+        <div class="topbar">
+            <div>
+                <div class="brand-title">Organizador</div>
+                <div class="brand-subtitle">Tudo em um só lugar</div>
+            </div>
+            <button id="theme-toggle" class="theme-toggle" onclick="toggleTheme()" title="Alternar tema" aria-label="Alternar tema">
+                <i id="theme-icon" data-lucide="moon"></i>
+            </button>
+        </div>
+        <div class="tabs">
+            <button onclick="switchTab('subs')" id="btn-subs" class="tab-button tab-active flex items-center justify-center gap-1">
                 <i data-lucide="clock" class="w-4"></i> Assinaturas
             </button>
-            <button onclick="switchTab('bet')" id="btn-bet" class="flex-1 py-3 rounded-xl text-xs flex items-center justify-center gap-2 transition-all opacity-50">
+            <button onclick="switchTab('bet')" id="btn-bet" class="tab-button flex items-center justify-center gap-1">
                 <i data-lucide="target" class="w-4"></i> Rollover
             </button>
-            <button onclick="switchTab('notes')" id="btn-notes" class="flex-1 py-3 rounded-xl text-xs flex items-center justify-center gap-2 transition-all opacity-50">
+            <button onclick="switchTab('notes')" id="btn-notes" class="tab-button flex items-center justify-center gap-1">
                 <i data-lucide="clipboard-list" class="w-4"></i> Notas
             </button>
         </div>
 
         <!-- TAB: ASSINATURAS -->
         <div id="tab-subs" class="space-y-4">
-            <div class="bg-zinc-900 p-5 rounded-3xl border border-zinc-800 shadow-xl">
-                <h2 class="text-xs font-bold uppercase mb-4 opacity-50 tracking-tighter">Novo Registro</h2>
-                <input id="sub-name" placeholder="Ex: Netflix" class="w-full bg-zinc-800 p-4 rounded-2xl mb-2 outline-none focus:ring-2 ring-blue-500 transition-all">
+            <div class="card form-card">
+                <h2 class="section-label">Novo Registro</h2>
+                <input id="sub-name" placeholder="Ex: Netflix" class="field">
                 <div class="flex gap-2">
-                    <input id="sub-days" type="number" placeholder="Dias" class="flex-1 bg-zinc-800 p-4 rounded-2xl outline-none focus:ring-2 ring-blue-500">
-                    <button onclick="addSubscription()" class="bg-blue-600 hover:bg-blue-500 p-4 rounded-2xl transition-all active:scale-95">
+                    <input id="sub-days" type="number" placeholder="Dias" class="field">
+                    <button onclick="addSubscription()" class="primary-btn blue-btn">
                         <i data-lucide="plus"></i>
                     </button>
                 </div>
             </div>
-            <div id="subs-list" class="space-y-3"></div>
+            <div id="subs-list" class="list-stack"></div>
         </div>
 
         <!-- TAB: ROLLOVER -->
         <div id="tab-bet" class="hidden space-y-4">
-            <div class="bg-zinc-900 p-5 rounded-3xl border border-zinc-800 shadow-xl">
-                <h2 class="text-xs font-bold uppercase mb-4 opacity-50 tracking-tighter">Gerenciar Contas</h2>
+            <div class="card form-card">
+                <h2 class="section-label">Gerenciar Contas</h2>
                 <div class="space-y-2">
-                    <input id="acc-name" placeholder="Nome da Conta" class="w-full bg-zinc-800 p-4 rounded-2xl outline-none focus:ring-2 ring-emerald-500">
+                    <input id="acc-name" placeholder="Nome da Conta" class="field">
                     <div class="flex gap-2">
-                        <input id="acc-goal" type="number" placeholder="Valor Meta" class="flex-1 bg-zinc-800 p-4 rounded-2xl outline-none focus:ring-2 ring-emerald-500">
-                        <button onclick="addAccount()" class="bg-emerald-600 hover:bg-emerald-500 p-4 rounded-2xl transition-all active:scale-95">
+                        <input id="acc-goal" type="number" placeholder="Valor Meta" class="field">
+                        <button onclick="addAccount()" class="primary-btn green-btn">
                             <i data-lucide="user-plus"></i>
                         </button>
                     </div>
                 </div>
             </div>
-            <div id="acc-list" class="flex gap-3 overflow-x-auto pb-4 no-scrollbar pt-2"></div>
-            <div id="action-panel" class="bg-zinc-900 p-6 rounded-[2.5rem] border border-zinc-800 text-center shadow-2xl relative overflow-hidden">
+            <div id="acc-list" class="account-list"></div>
+            <div id="action-panel" class="card rollover-panel">
                 <div id="panel-empty" class="py-10 opacity-30 italic text-sm">Selecione uma conta</div>
                 <div id="panel-content" class="hidden">
                     <div class="mb-4">
-                        <h3 id="active-acc-name" class="text-emerald-500 font-bold uppercase text-xs tracking-widest"></h3>
-                        <div id="rollover-val" class="text-5xl font-black mt-2 text-zinc-100">R$ 0.00</div>
-                        <div id="goal-info" class="text-sm opacity-40 mt-1 font-medium"></div>
+                        <h3 id="active-acc-name" class="active-name"></h3>
+                        <div id="rollover-val" class="rollover-value">R$ 0.00</div>
+                        <div id="goal-info" class="goal-text"></div>
                     </div>
-                    <div class="w-full bg-zinc-800 h-4 rounded-full mb-6 p-1 border border-zinc-700">
-                        <div id="progress-bar" class="h-full bg-emerald-500 rounded-full transition-all duration-700" style="width: 0%"></div>
+                    <div class="progress-track">
+                        <div id="progress-bar" class="progress-fill" style="width: 0%"></div>
                     </div>
-                    <div id="status-badge" class="hidden mb-6 p-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/50 text-emerald-400 font-black text-sm">🎯 ROLLOVER BATIDO!</div>
-                    <input id="bet-input" type="number" placeholder="Valor da entrada" class="w-full bg-zinc-800 p-5 rounded-2xl mb-4 text-center text-3xl font-bold outline-none border-2 border-transparent focus:border-emerald-500">
-                    <button onclick="addToRollover()" class="w-full bg-emerald-600 hover:bg-emerald-500 py-5 rounded-2xl font-black text-xl shadow-lg active:scale-95 transition-all">ADICIONAR</button>
-                    <div class="flex gap-2 mt-6">
-                        <button onclick="addMoreGoal()" class="flex-1 bg-zinc-800 py-3 rounded-xl text-[10px] font-bold uppercase opacity-60">Novo Depósito</button>
-                        <button onclick="deleteAccount()" class="flex-1 bg-red-900/10 py-3 rounded-xl text-[10px] font-bold uppercase text-red-500">Excluir</button>
+                    <div id="status-badge" class="status hidden">🎯 ROLLOVER BATIDO!</div>
+                    <input id="bet-input" type="number" placeholder="Valor da entrada" class="bet-input">
+                    <button onclick="addToRollover()" class="action-main">ADICIONAR</button>
+
+                    <div class="mt-5 p-4 rounded-2xl bg-zinc-800/60 border border-zinc-700 text-left">
+                        <div class="text-[10px] font-bold uppercase opacity-50 mb-2">Dicas de acompanhamento</div>
+                        <ul class="text-xs text-zinc-400 space-y-1.5">
+                            <li>• Defina um limite de valor antes de registrar as entradas.</li>
+                            <li>• Acompanhe o total acumulado e o restante da meta.</li>
+                            <li>• Evite aumentar valores para tentar recuperar perdas.</li>
+                        </ul>
+                    </div>
+
+                    <div class="secondary-actions">
+                        <button onclick="addMoreGoal()" class="secondary-btn">Novo Depósito</button>
+                        <button onclick="deleteAccount()" class="secondary-btn delete-btn">Excluir</button>
                     </div>
                 </div>
             </div>
@@ -108,17 +546,17 @@
 
         <!-- TAB: ANOTAÇÕES -->
         <div id="tab-notes" class="hidden space-y-4">
-            <div class="bg-zinc-900 p-5 rounded-3xl border border-zinc-800 shadow-xl">
-                <h2 class="text-xs font-bold uppercase mb-4 opacity-50 tracking-tighter">Nova Anotação</h2>
-                <textarea id="note-text" placeholder="O que você precisa lembrar?" class="w-full bg-zinc-800 p-4 rounded-2xl mb-2 outline-none focus:ring-2 ring-purple-500 transition-all resize-none h-24 text-sm"></textarea>
+            <div class="card form-card">
+                <h2 class="section-label">Nova Anotação</h2>
+                <textarea id="note-text" placeholder="O que você precisa lembrar?" class="field resize-none h-24 text-sm"></textarea>
                 <div class="flex gap-2">
-                    <input id="note-date" type="datetime-local" class="flex-1 bg-zinc-800 p-4 rounded-2xl outline-none focus:ring-2 ring-purple-500 text-xs">
-                    <button onclick="addNote()" class="bg-purple-600 hover:bg-purple-500 p-4 rounded-2xl transition-all active:scale-95">
+                    <input id="note-date" type="datetime-local" class="field text-xs">
+                    <button onclick="addNote()" class="primary-btn purple-btn">
                         <i data-lucide="save"></i>
                     </button>
                 </div>
             </div>
-            <div id="notes-list" class="space-y-3"></div>
+            <div id="notes-list" class="list-stack"></div>
         </div>
 
     </div>
@@ -146,12 +584,38 @@
         let notes = [];
         let selectedAccId = null;
 
+        // --- TEMA ---
+        function applyTheme(theme) {
+            const isDark = theme === 'dark';
+            document.body.classList.toggle('theme-dark', isDark);
+
+            const icon = document.getElementById('theme-icon');
+            if (icon) {
+                icon.setAttribute('data-lucide', isDark ? 'sun' : 'moon');
+                lucide.createIcons();
+            }
+
+            const button = document.getElementById('theme-toggle');
+            if (button) {
+                button.title = isDark ? 'Usar tema claro' : 'Usar tema escuro';
+                button.setAttribute('aria-label', button.title);
+            }
+        }
+
+        window.toggleTheme = () => {
+            const next = document.body.classList.contains('theme-dark') ? 'light' : 'dark';
+            localStorage.setItem('organizador-theme', next);
+            applyTheme(next);
+        };
+
+        const savedTheme = localStorage.getItem('organizador-theme') || 'light';
+        applyTheme(savedTheme);
+
         // --- TABS ---
         window.switchTab = (tab) => {
             ['subs', 'bet', 'notes'].forEach(t => {
                 document.getElementById(`tab-${t}`).classList.toggle('hidden', t !== tab);
                 document.getElementById(`btn-${t}`).classList.toggle('tab-active', t === tab);
-                document.getElementById(`btn-${t}`).classList.toggle('opacity-50', t !== tab);
             });
             lucide.createIcons();
         };
@@ -196,7 +660,19 @@
             const data = snapshot.val();
             accounts = data ? Object.keys(data).map(key => ({ id: key, ...data[key] })) : [];
             renderAccounts();
-            if (selectedAccId) updatePanel();
+
+            if (selectedAccId) {
+                const selectedStillExists = accounts.some(a => a.id === selectedAccId);
+
+                if (selectedStillExists) {
+                    updatePanel();
+                } else {
+                    selectedAccId = null;
+                    document.getElementById('panel-content').classList.add('hidden');
+                    document.getElementById('panel-empty').classList.remove('hidden');
+                    document.getElementById('bet-input').value = '';
+                }
+            }
         });
 
         window.addAccount = () => {
@@ -211,7 +687,8 @@
             selectedAccId = id;
             document.getElementById('panel-empty').classList.add('hidden');
             document.getElementById('panel-content').classList.remove('hidden');
-            updatePanel(); renderAccounts();
+            updatePanel();
+            renderAccounts();
         };
 
         window.updatePanel = () => {
@@ -240,7 +717,27 @@
             update(ref(db, `contas/${selectedAccId}`), { goal: acc.goal + extra });
         };
 
-        window.deleteAccount = () => { if(confirm("Excluir conta?")) { remove(ref(db, `contas/${selectedAccId}`)); selectedAccId = null; } };
+        window.deleteAccount = async () => {
+            if(!selectedAccId) return;
+            if(!confirm("Excluir conta?")) return;
+
+            const idToDelete = selectedAccId;
+
+            // Limpa a interface imediatamente.
+            selectedAccId = null;
+            document.getElementById('panel-content').classList.add('hidden');
+            document.getElementById('panel-empty').classList.remove('hidden');
+            document.getElementById('bet-input').value = '';
+            renderAccounts();
+
+            // Remove no Firebase em seguida.
+            try {
+                await remove(ref(db, `contas/${idToDelete}`));
+            } catch (error) {
+                console.error("Erro ao excluir conta:", error);
+                alert("Não foi possível excluir a conta. Tente novamente.");
+            }
+        };
 
         function renderAccounts() {
             const list = document.getElementById('acc-list');
@@ -248,9 +745,9 @@
             accounts.forEach(acc => {
                 const card = document.createElement('div');
                 card.onclick = () => window.selectAccount(acc.id);
-                card.className = `min-w-[130px] p-4 rounded-2xl border-2 border-zinc-800 bg-zinc-900 cursor-pointer ${selectedAccId === acc.id ? 'selected-acc' : ''}`;
-                card.innerHTML = `<div class="text-[10px] font-bold opacity-40 truncate">${acc.name}</div>
-                                  <div class="text-lg font-black">${acc.current >= acc.goal ? 'BATIDO' : 'R$ '+acc.current.toFixed(0)}</div>`;
+                card.className = `account-card ${selectedAccId === acc.id ? 'selected-acc' : ''}`;
+                card.innerHTML = `<div class="account-name">${acc.name}</div>
+                                  <div class="account-value">${acc.current >= acc.goal ? 'BATIDO' : 'R$ '+acc.current.toFixed(0)}</div>`;
                 list.appendChild(card);
             });
         }
