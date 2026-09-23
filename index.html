@@ -724,9 +724,12 @@
             </div>
 
             <div class="card form-card">
-                <div class="flex justify-between items-center">
+                <div class="flex justify-between items-center gap-2">
                     <h2 id="proxy-list-title" class="section-label" style="margin-bottom:0">Portas usadas — Tudo</h2>
-                    <button onclick="clearProxyFilters()" class="secondary-btn">Limpar</button>
+                    <div class="flex gap-2">
+                        <button onclick="clearProxyFilters()" class="secondary-btn">Limpar</button>
+                        <button onclick="resetAllProxies()" class="secondary-btn delete-btn" title="Excluir todas as portas de proxy">Resetar tudo</button>
+                    </div>
                 </div>
                 <div id="proxy-list" class="proxy-list"></div>
             </div>
@@ -1170,13 +1173,50 @@
 
         async function deleteProxy(scope, uf, port) {
             if (!confirm(`Excluir a porta ${port} do histórico?`)) return;
-            if (scope === 'all') {
-                await remove(ref(db, `proxy/portasTudo/${port}`));
-            } else {
-                await remove(ref(db, `proxy/estados/${uf}/ports/${port}`));
+            try {
+                if (scope === 'all') {
+                    await remove(ref(db, `proxy/portasTudo/${port}`));
+                } else {
+                    await remove(ref(db, `proxy/estados/${uf}/ports/${port}`));
+                }
+            } catch (error) {
+                console.error('Erro ao excluir proxy:', error);
+                alert('Não foi possível excluir essa porta. Tente novamente.');
             }
         }
         window.deleteProxy = deleteProxy;
+
+        // Apaga SOMENTE os dados da aba Proxy. Assinaturas, contas e anotações permanecem intactas.
+        window.resetAllProxies = async () => {
+            const totalAll = proxyAll.length;
+            const totalState = Object.values(proxyStatesData || {}).reduce((sum, state) => {
+                return sum + Object.keys(state?.ports || {}).length;
+            }, 0);
+            const total = totalAll + totalState;
+
+            if (total === 0) {
+                alert('Não há proxies salvas para resetar.');
+                return;
+            }
+
+            const confirmed = confirm(
+                `ATENÇÃO: isso vai excluir TODAS as portas salvas de Proxy (TUDO e ESTADO).\n\n` +
+                `${total} registro(s) serão apagados.\n\nEssa ação não pode ser desfeita. Continuar?`
+            );
+            if (!confirmed) return;
+
+            try {
+                await remove(ref(db, 'proxy'));
+                proxyAll = [];
+                proxyStatesData = {};
+                clearProxyFilters();
+                renderProxyList();
+                setProxyStatus('proxy-all-status', 'Todas as proxies foram apagadas.', 'ok');
+            } catch (error) {
+                console.error('Erro ao resetar proxies:', error);
+                alert('Não foi possível resetar as proxies. Verifique a conexão e tente novamente.');
+            }
+        };
 
         function renderProxyList() {
             const list = document.getElementById('proxy-list');
