@@ -1025,7 +1025,7 @@
                 proxyStates.map(([uf, name]) => `<option value="${uf}">${name} (${uf})</option>`).join('');
         }
 
-        async function loadProxyCities() {
+        window.loadProxyCities = async function loadProxyCities() {
             const uf = document.getElementById('proxy-state').value;
             const city = document.getElementById('proxy-city');
             city.innerHTML = '<option value="">Todas as cidades do estado</option>';
@@ -1058,7 +1058,7 @@
             city.disabled = false;
         }
 
-        function switchProxyMode(mode) {
+        window.switchProxyMode = function switchProxyMode(mode) {
             proxyMode = mode;
             document.getElementById('proxy-all-panel').classList.toggle('hidden', mode !== 'all');
             document.getElementById('proxy-state-panel').classList.toggle('hidden', mode !== 'state');
