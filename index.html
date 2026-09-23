@@ -59,7 +59,7 @@
 
         .tabs {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(4, 1fr);
             gap: 5px;
             padding: 4px;
             margin-bottom: 18px;
@@ -455,6 +455,100 @@
         .theme-toggle:hover { transform: translateY(-1px); }
         .theme-toggle:active { transform: scale(.95); }
 
+
+        /* --- PROXY --- */
+        .proxy-subtabs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px;
+            padding: 4px;
+            margin-bottom: 12px;
+            background: #eceef2;
+            border-radius: 13px;
+        }
+        .proxy-subtab {
+            border: 0;
+            background: transparent;
+            color: #777c85;
+            padding: 9px 8px;
+            border-radius: 9px;
+            font-size: 11px;
+            font-weight: 750;
+            cursor: pointer;
+        }
+        .proxy-subtab.active {
+            background: var(--surface);
+            color: var(--text);
+            box-shadow: 0 1px 4px rgba(0,0,0,.07);
+        }
+        .proxy-status {
+            padding: 11px 13px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 750;
+            margin-top: 10px;
+            display: none;
+        }
+        .proxy-status.ok {
+            display: block;
+            color: #15803d;
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+        }
+        .proxy-status.used {
+            display: block;
+            color: #b91c1c;
+            background: #fff5f5;
+            border: 1px solid #fecaca;
+        }
+        .proxy-status.info {
+            display: block;
+            color: #1d4ed8;
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+        }
+        .proxy-list {
+            display: grid;
+            gap: 7px;
+            margin-top: 12px;
+            max-height: 420px;
+            overflow: auto;
+        }
+        .proxy-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 11px 12px;
+            border: 1px solid var(--border);
+            border-radius: 13px;
+            background: var(--surface);
+        }
+        .proxy-port {
+            font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+            font-weight: 800;
+            font-size: 13px;
+        }
+        .proxy-meta {
+            color: var(--muted);
+            font-size: 10px;
+            margin-top: 3px;
+        }
+        .proxy-delete {
+            border: 1px solid #f2dada;
+            background: #fffafa;
+            color: var(--red);
+            border-radius: 9px;
+            padding: 7px 9px;
+            cursor: pointer;
+        }
+        body.theme-dark .proxy-subtabs { background: #181b21; }
+        body.theme-dark .proxy-subtab.active { background: #242830; color: #fff; }
+        body.theme-dark .proxy-row { background: var(--surface); border-color: var(--border); }
+        body.theme-dark .proxy-delete { background: #211517; border-color: #452326; }
+        body.theme-dark .proxy-status.ok { background: #102218; border-color: #285d38; }
+        body.theme-dark .proxy-status.used { background: #251719; border-color: #4b292c; }
+        body.theme-dark .proxy-status.info { background: #151f35; border-color: #263e69; }
     </style>
 </head>
 <body class="select-none">
@@ -479,6 +573,9 @@
             </button>
             <button onclick="switchTab('notes')" id="btn-notes" class="tab-button flex items-center justify-center gap-1">
                 <i data-lucide="clipboard-list" class="w-4"></i> Notas
+            </button>
+            <button onclick="switchTab('proxy')" id="btn-proxy" class="tab-button flex items-center justify-center gap-1">
+                <i data-lucide="network" class="w-4"></i> Proxy
             </button>
         </div>
 
@@ -556,7 +653,83 @@
                     </button>
                 </div>
             </div>
+
             <div id="notes-list" class="list-stack"></div>
+        </div>
+
+        <!-- TAB: PROXY -->
+        <div id="tab-proxy" class="hidden space-y-4">
+            <div class="card form-card">
+                <h2 class="section-label">Portas de Proxy</h2>
+
+                <div class="proxy-subtabs">
+                    <button id="proxy-mode-all" class="proxy-subtab active" onclick="switchProxyMode('all')">TUDO</button>
+                    <button id="proxy-mode-state" class="proxy-subtab" onclick="switchProxyMode('state')">ESTADO</button>
+                </div>
+
+                <div id="proxy-all-panel">
+                    <div class="row">
+                        <input id="proxy-all-port" type="number" min="1" max="65535" inputmode="numeric"
+                               placeholder="Ex.: 11000" class="field">
+                        <button onclick="addProxyPort('all')" class="primary-btn blue-btn" title="Salvar porta">
+                            <i data-lucide="plus"></i>
+                        </button>
+                    </div>
+                    <div class="proxy-status" id="proxy-all-status"></div>
+
+                    <div class="mt-4">
+                        <div class="section-label">Consultar porta</div>
+                        <div class="row">
+                            <input id="proxy-search-all" type="number" min="1" max="65535" inputmode="numeric"
+                                   placeholder="Ex.: 11000" class="field">
+                            <button onclick="checkProxyPort('all')" class="primary-btn purple-btn" title="Consultar">
+                                <i data-lucide="search"></i>
+                            </button>
+                        </div>
+                        <div class="proxy-status" id="proxy-search-all-status"></div>
+                    </div>
+                </div>
+
+                <div id="proxy-state-panel" class="hidden">
+                    <div class="space-y-2">
+                        <select id="proxy-state" class="field" onchange="loadProxyCities()">
+                            <option value="">Selecione o estado</option>
+                        </select>
+                        <select id="proxy-city" class="field" disabled>
+                            <option value="">Todas as cidades do estado</option>
+                        </select>
+                    </div>
+
+                    <div class="row mt-2">
+                        <input id="proxy-state-port" type="number" min="1" max="65535" inputmode="numeric"
+                               placeholder="Ex.: 1000" class="field">
+                        <button onclick="addProxyPort('state')" class="primary-btn green-btn" title="Salvar porta no estado">
+                            <i data-lucide="plus"></i>
+                        </button>
+                    </div>
+                    <div class="proxy-status" id="proxy-state-status"></div>
+
+                    <div class="mt-4">
+                        <div class="section-label">Consultar porta no estado</div>
+                        <div class="row">
+                            <input id="proxy-search-state" type="number" min="1" max="65535" inputmode="numeric"
+                                   placeholder="Ex.: 1000" class="field">
+                            <button onclick="checkProxyPort('state')" class="primary-btn purple-btn" title="Consultar">
+                                <i data-lucide="search"></i>
+                            </button>
+                        </div>
+                        <div class="proxy-status" id="proxy-search-state-status"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card form-card">
+                <div class="flex justify-between items-center">
+                    <h2 id="proxy-list-title" class="section-label" style="margin-bottom:0">Portas usadas — Tudo</h2>
+                    <button onclick="clearProxyFilters()" class="secondary-btn">Limpar</button>
+                </div>
+                <div id="proxy-list" class="proxy-list"></div>
+            </div>
         </div>
 
     </div>
@@ -613,7 +786,7 @@
 
         // --- TABS ---
         window.switchTab = (tab) => {
-            ['subs', 'bet', 'notes'].forEach(t => {
+            ['subs', 'bet', 'notes', 'proxy'].forEach(t => {
                 document.getElementById(`tab-${t}`).classList.toggle('hidden', t !== tab);
                 document.getElementById(`btn-${t}`).classList.toggle('tab-active', t === tab);
             });
@@ -814,6 +987,258 @@
             lucide.createIcons();
         }
 
+
+        // --- PROXY ---
+        const proxyStates = [
+            ['AC','Acre'], ['AL','Alagoas'], ['AP','Amapá'], ['AM','Amazonas'],
+            ['BA','Bahia'], ['CE','Ceará'], ['DF','Distrito Federal'], ['ES','Espírito Santo'],
+            ['GO','Goiás'], ['MA','Maranhão'], ['MT','Mato Grosso'], ['MS','Mato Grosso do Sul'],
+            ['MG','Minas Gerais'], ['PA','Pará'], ['PB','Paraíba'], ['PR','Paraná'],
+            ['PE','Pernambuco'], ['PI','Piauí'], ['RJ','Rio de Janeiro'], ['RN','Rio Grande do Norte'],
+            ['RS','Rio Grande do Sul'], ['RO','Rondônia'], ['RR','Roraima'], ['SC','Santa Catarina'],
+            ['SP','São Paulo'], ['SE','Sergipe'], ['TO','Tocantins']
+        ];
+
+        let proxyMode = 'all';
+        let proxyAll = [];
+        let proxyStatesData = {};
+        let proxyCitiesCache = {};
+
+        function proxyPortValid(port) {
+            const n = Number(port);
+            return Number.isInteger(n) && n >= 1 && n <= 65535;
+        }
+
+        function escapeHtml(value) {
+            return String(value).replace(/[&<>"']/g, ch => ({
+                '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#039;'
+            }[ch]));
+        }
+
+        function populateProxyStates() {
+            const select = document.getElementById('proxy-state');
+            if (!select) return;
+            select.innerHTML = '<option value="">Selecione o estado</option>' +
+                proxyStates.map(([uf, name]) => `<option value="${uf}">${name} (${uf})</option>`).join('');
+        }
+
+        async function loadProxyCities() {
+            const uf = document.getElementById('proxy-state').value;
+            const city = document.getElementById('proxy-city');
+            city.innerHTML = '<option value="">Todas as cidades do estado</option>';
+            city.disabled = true;
+            if (!uf) return;
+
+            if (proxyCitiesCache[uf]) {
+                fillProxyCities(proxyCitiesCache[uf]);
+                return;
+            }
+
+            city.innerHTML = '<option value="">Carregando cidades...</option>';
+            try {
+                const response = await fetch(`https://servicodados.ibge.gov.br/api/v1/localidades/estados/${uf}/municipios`);
+                if (!response.ok) throw new Error('Falha ao carregar cidades');
+                const data = await response.json();
+                const cities = data.map(item => item.nome).sort((a,b) => a.localeCompare(b, 'pt-BR'));
+                proxyCitiesCache[uf] = cities;
+                fillProxyCities(cities);
+            } catch (error) {
+                city.innerHTML = '<option value="">Não foi possível carregar as cidades</option>';
+                setProxyStatus('proxy-state-status', 'Não consegui carregar a lista de cidades agora. Verifique sua conexão e tente novamente.', 'used');
+            }
+        }
+
+        function fillProxyCities(cities) {
+            const city = document.getElementById('proxy-city');
+            city.innerHTML = '<option value="">Todas as cidades do estado</option>' +
+                cities.map(name => `<option value="${escapeHtml(name)}">${escapeHtml(name)}</option>`).join('');
+            city.disabled = false;
+        }
+
+        function switchProxyMode(mode) {
+            proxyMode = mode;
+            document.getElementById('proxy-all-panel').classList.toggle('hidden', mode !== 'all');
+            document.getElementById('proxy-state-panel').classList.toggle('hidden', mode !== 'state');
+            document.getElementById('proxy-mode-all').classList.toggle('active', mode === 'all');
+            document.getElementById('proxy-mode-state').classList.toggle('active', mode === 'state');
+            renderProxyList();
+        }
+
+        function setProxyStatus(id, message, type) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.className = `proxy-status ${type || ''}`;
+            el.textContent = message;
+        }
+
+        function clearProxyStatus(id) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.className = 'proxy-status';
+            el.textContent = '';
+        }
+
+        function stateName(uf) {
+            return proxyStates.find(x => x[0] === uf)?.[1] || uf;
+        }
+
+        function normalizePort(port) {
+            return String(Number(port));
+        }
+
+        window.addProxyPort = async (scope) => {
+            const inputId = scope === 'all' ? 'proxy-all-port' : 'proxy-state-port';
+            const port = normalizePort(document.getElementById(inputId).value);
+            const statusId = scope === 'all' ? 'proxy-all-status' : 'proxy-state-status';
+
+            if (!proxyPortValid(port)) {
+                setProxyStatus(statusId, 'Informe uma porta válida entre 1 e 65535.', 'used');
+                return;
+            }
+
+            if (scope === 'all') {
+                if (proxyAll.includes(port)) {
+                    setProxyStatus(statusId, `A porta ${port} já foi usada em TUDO.`, 'used');
+                    return;
+                }
+                await set(ref(db, `proxy/portasTudo/${port}`), { port: Number(port), createdAt: Date.now() });
+                document.getElementById(inputId).value = '';
+                setProxyStatus(statusId, `Porta ${port} salva em TUDO.`, 'ok');
+            } else {
+                const uf = document.getElementById('proxy-state').value;
+                const city = document.getElementById('proxy-city').value || '';
+                if (!uf) {
+                    setProxyStatus(statusId, 'Selecione um estado primeiro.', 'used');
+                    return;
+                }
+
+                const statePorts = proxyStatesData[uf]?.ports || {};
+                if (statePorts[port]) {
+                    const where = statePorts[port].city ? ` (${statePorts[port].city})` : '';
+                    setProxyStatus(statusId, `A porta ${port} já foi usada em ${uf}${where}.`, 'used');
+                    return;
+                }
+
+                await set(ref(db, `proxy/estados/${uf}/ports/${port}`), {
+                    port: Number(port),
+                    city,
+                    createdAt: Date.now()
+                });
+                document.getElementById(inputId).value = '';
+                setProxyStatus(statusId, `Porta ${port} salva em ${stateName(uf)}${city ? ` — ${city}` : ''}.`, 'ok');
+            }
+        };
+
+        window.checkProxyPort = (scope) => {
+            const inputId = scope === 'all' ? 'proxy-search-all' : 'proxy-search-state';
+            const statusId = scope === 'all' ? 'proxy-search-all-status' : 'proxy-search-state-status';
+            const port = normalizePort(document.getElementById(inputId).value);
+
+            if (!proxyPortValid(port)) {
+                setProxyStatus(statusId, 'Digite uma porta válida entre 1 e 65535.', 'used');
+                return;
+            }
+
+            if (scope === 'all') {
+                const used = proxyAll.includes(port);
+                setProxyStatus(statusId, used ? `SIM — a porta ${port} já foi usada.` : `NÃO — a porta ${port} ainda não foi usada.`, used ? 'used' : 'ok');
+            } else {
+                const uf = document.getElementById('proxy-state').value;
+                if (!uf) {
+                    setProxyStatus(statusId, 'Selecione um estado primeiro.', 'used');
+                    return;
+                }
+                const entry = proxyStatesData[uf]?.ports?.[port];
+                if (entry) {
+                    setProxyStatus(statusId, `SIM — ${port} já foi usada em ${stateName(uf)}${entry.city ? ` — ${entry.city}` : ''}.`, 'used');
+                } else {
+                    setProxyStatus(statusId, `NÃO — ${port} ainda não foi usada em ${stateName(uf)}.`, 'ok');
+                }
+            }
+        };
+
+        window.clearProxyFilters = () => {
+            document.getElementById('proxy-all-port').value = '';
+            document.getElementById('proxy-state-port').value = '';
+            document.getElementById('proxy-search-all').value = '';
+            document.getElementById('proxy-search-state').value = '';
+            clearProxyStatus('proxy-all-status');
+            clearProxyStatus('proxy-state-status');
+            clearProxyStatus('proxy-search-all-status');
+            clearProxyStatus('proxy-search-state-status');
+        };
+
+        async function deleteProxy(scope, uf, port) {
+            if (!confirm(`Excluir a porta ${port} do histórico?`)) return;
+            if (scope === 'all') {
+                await remove(ref(db, `proxy/portasTudo/${port}`));
+            } else {
+                await remove(ref(db, `proxy/estados/${uf}/ports/${port}`));
+            }
+        }
+        window.deleteProxy = deleteProxy;
+
+        function renderProxyList() {
+            const list = document.getElementById('proxy-list');
+            const title = document.getElementById('proxy-list-title');
+            if (!list || !title) return;
+
+            let rows = [];
+            if (proxyMode === 'all') {
+                title.textContent = `Portas usadas — Tudo (${proxyAll.length})`;
+                rows = proxyAll.map(port => ({ port, scope:'all', meta:'Histórico global' }));
+            } else {
+                const uf = document.getElementById('proxy-state')?.value || '';
+                if (!uf) {
+                    title.textContent = 'Portas usadas — Estado';
+                    list.innerHTML = '<div class="empty-state">Selecione um estado para ver as portas registradas.</div>';
+                    return;
+                }
+                const ports = proxyStatesData[uf]?.ports || {};
+                rows = Object.values(ports).map(item => ({
+                    port: String(item.port),
+                    scope:'state',
+                    uf,
+                    meta: item.city ? `${stateName(uf)} — ${item.city}` : stateName(uf)
+                }));
+                title.textContent = `Portas usadas — ${stateName(uf)} (${rows.length})`;
+            }
+
+            rows.sort((a,b) => Number(b.port) - Number(a.port));
+            list.innerHTML = rows.length ? rows.map(item => `
+                <div class="proxy-row">
+                    <div>
+                        <div class="proxy-port">${escapeHtml(item.port)}</div>
+                        <div class="proxy-meta">${escapeHtml(item.meta)}</div>
+                    </div>
+                    <button class="proxy-delete" onclick="deleteProxy('${item.scope}','${item.uf || ''}','${item.port}')">
+                        <i data-lucide="trash-2"></i>
+                    </button>
+                </div>
+            `).join('') : '<div class="empty-state">Nenhuma porta registrada ainda.</div>';
+            lucide.createIcons();
+        }
+
+        onValue(ref(db, 'proxy/portasTudo'), snapshot => {
+            const data = snapshot.val() || {};
+            proxyAll = Object.keys(data);
+            renderProxyList();
+        });
+
+        onValue(ref(db, 'proxy/estados'), snapshot => {
+            const data = snapshot.val() || {};
+            proxyStatesData = data;
+            renderProxyList();
+        });
+
+        document.getElementById('proxy-state')?.addEventListener('change', () => {
+            renderProxyList();
+            clearProxyStatus('proxy-search-state-status');
+            clearProxyStatus('proxy-state-status');
+        });
+
+        populateProxyStates();
+
         // --- TIMER UNIVERSAL (CORRIGIDO) ---
         function startUniversalTimer(targetTimestamp, elementId, isNote = false) {
             const updateUI = () => {
@@ -846,6 +1271,21 @@
                 updateUI();
             }, 1000);
         }
+
+
+        // Enter também executa a consulta/registro rapidamente.
+        document.getElementById('proxy-all-port')?.addEventListener('keydown', e => {
+            if (e.key === 'Enter') window.addProxyPort('all');
+        });
+        document.getElementById('proxy-search-all')?.addEventListener('keydown', e => {
+            if (e.key === 'Enter') window.checkProxyPort('all');
+        });
+        document.getElementById('proxy-state-port')?.addEventListener('keydown', e => {
+            if (e.key === 'Enter') window.addProxyPort('state');
+        });
+        document.getElementById('proxy-search-state')?.addEventListener('keydown', e => {
+            if (e.key === 'Enter') window.checkProxyPort('state');
+        });
 
         lucide.createIcons();
     </script>
